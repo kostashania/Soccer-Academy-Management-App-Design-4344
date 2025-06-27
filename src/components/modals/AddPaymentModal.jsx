@@ -8,7 +8,8 @@ import { toast } from 'react-toastify';
 const { FiX, FiDollarSign, FiUser, FiCreditCard, FiFileText, FiPackage } = FiIcons;
 
 const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
-  const { addPayment, updatePayment, users, students, products } = useApp();
+  const { addPayment, updatePayment, users = [], students = [], products = [] } = useApp();
+  
   const [formData, setFormData] = useState({
     studentName: payment?.studentName || '',
     parentName: payment?.parentName || '',
@@ -24,8 +25,12 @@ const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
   const [availableStudents, setAvailableStudents] = useState([]);
   const [selectedParent, setSelectedParent] = useState(null);
 
-  const parents = users.filter(user => user.role === 'parent');
-  const allStudents = [...students, ...users.filter(user => user.role === 'player')];
+  // Safe array access with fallbacks
+  const parents = Array.isArray(users) ? users.filter(user => user.role === 'parent') : [];
+  const allStudents = [
+    ...(Array.isArray(students) ? students : []),
+    ...(Array.isArray(users) ? users.filter(user => user.role === 'player') : [])
+  ];
 
   // Update available students when parent is selected
   useEffect(() => {
@@ -44,7 +49,7 @@ const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
       setAvailableStudents(allStudents);
       setSelectedParent(null);
     }
-  }, [formData.parentName]);
+  }, [formData.parentName, parents, allStudents]);
 
   // Auto-fill parent when student is selected
   useEffect(() => {
@@ -53,33 +58,36 @@ const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
       if (student) {
         // Find parent for this student
         const parent = parents.find(p => 
-          p.id === student.parentId || 
-          p.name === student.parentName
+          p.id === student.parentId || p.name === student.parentName
         );
         if (parent) {
-          setFormData(prev => ({ ...prev, parentName: parent.name }));
+          setFormData(prev => ({
+            ...prev,
+            parentName: parent.name
+          }));
         }
       }
     }
-  }, [formData.studentName]);
+  }, [formData.studentName, parents, allStudents]);
 
   // Update amount when product is selected
   useEffect(() => {
-    if (formData.paymentType === 'store_item' && formData.productId) {
+    if (formData.paymentType === 'store_item' && formData.productId && Array.isArray(products)) {
       const product = products.find(p => p.id === formData.productId);
       if (product) {
         const totalAmount = product.price * formData.quantity;
-        setFormData(prev => ({ 
-          ...prev, 
+        setFormData(prev => ({
+          ...prev,
           amount: totalAmount.toFixed(2),
           description: `Store purchase: ${product.name} (x${formData.quantity})`
         }));
       }
     }
-  }, [formData.paymentType, formData.productId, formData.quantity]);
+  }, [formData.paymentType, formData.productId, formData.quantity, products]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
     if (!formData.studentName || !formData.parentName || !formData.amount) {
       toast.error('Please fill in all required fields');
       return;
@@ -98,12 +106,16 @@ const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
       addPayment(paymentData);
       toast.success('Payment added successfully!');
     }
+
     onClose();
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const resetForm = () => {
@@ -172,7 +184,7 @@ const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
                 </div>
 
                 {/* Store Item Selection */}
-                {formData.paymentType === 'store_item' && (
+                {formData.paymentType === 'store_item' && Array.isArray(products) && (
                   <>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">

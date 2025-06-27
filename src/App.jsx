@@ -154,7 +154,7 @@ function App() {
                           />
                           <Route path="/profile" element={<Profile />} />
 
-                          {/* Admin Only Routes */}
+                          {/* Admin Only Routes - Fixed with /* */}
                           <Route
                             path="/admin/*"
                             element={

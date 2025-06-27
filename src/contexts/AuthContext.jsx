@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService, userService } from '../services/supabaseService';
 import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext({});
@@ -18,6 +17,21 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Simple getUserProfile function since service isn't working
+  const getUserProfile = async (authUserId) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles_sa2025')
+        .select('*')
+        .eq('auth_user_id', authUserId)
+        .single();
+      
+      return { data, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
+
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
@@ -31,7 +45,7 @@ export const AuthProvider = ({ children }) => {
           
           // Get user profile
           try {
-            const { data: profileData, error: profileError } = await userService.getUserProfile(session.user.id);
+            const { data: profileData, error: profileError } = await getUserProfile(session.user.id);
             if (profileError) {
               console.warn('Profile error:', profileError);
               // Create a basic profile if none exists
@@ -80,7 +94,7 @@ export const AuthProvider = ({ children }) => {
           setIsAuthenticated(true);
           
           try {
-            const { data: profileData, error: profileError } = await userService.getUserProfile(session.user.id);
+            const { data: profileData, error: profileError } = await getUserProfile(session.user.id);
             if (profileError) {
               console.warn('Profile error on auth change:', profileError);
               // Create basic profile
@@ -139,7 +153,7 @@ export const AuthProvider = ({ children }) => {
         
         // Get user profile
         try {
-          const { data: profileData, error: profileError } = await userService.getUserProfile(data.user.id);
+          const { data: profileData, error: profileError } = await getUserProfile(data.user.id);
           
           if (profileError) {
             console.warn('Profile error after login:', profileError);
@@ -203,7 +217,14 @@ export const AuthProvider = ({ children }) => {
     try {
       if (!profile) return { success: false, error: 'No profile found' };
 
-      const { data, error } = await userService.updateUser(profile.id, updatedData);
+      // Simple update since service isn't working
+      const { data, error } = await supabase
+        .from('user_profiles_sa2025')
+        .update({ ...updatedData, updated_at: new Date().toISOString() })
+        .eq('id', profile.id)
+        .select()
+        .single();
+
       if (error) throw error;
 
       setProfile(data);

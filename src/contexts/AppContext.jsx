@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { userService, paymentService, storeService, eventService } from '../services/supabaseService';
+import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import { toast } from 'react-toastify';
 
@@ -18,6 +18,7 @@ export const AppProvider = ({ children }) => {
 
   // State
   const [users, setUsers] = useState([]);
+  const [students, setStudents] = useState([]);
   const [payments, setPayments] = useState([]);
   const [products, setProducts] = useState([]);
   const [productCategories, setProductCategories] = useState([]);
@@ -48,6 +49,19 @@ export const AppProvider = ({ children }) => {
         email: 'jane@example.com',
         role: 'parent',
         avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+      }
+    ]);
+
+    // Mock students (same as users for now)
+    setStudents([
+      {
+        id: '1',
+        name: 'John Doe',
+        email: 'john@example.com',
+        role: 'player',
+        parentId: '2',
+        parentName: 'Jane Smith',
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
       }
     ]);
 
@@ -189,7 +203,11 @@ export const AppProvider = ({ children }) => {
 
   const loadUsers = async () => {
     try {
-      const { data, error } = await userService.getUsers();
+      const { data, error } = await supabase
+        .from('user_profiles_sa2025')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
@@ -200,7 +218,11 @@ export const AppProvider = ({ children }) => {
 
   const loadPayments = async () => {
     try {
-      const { data, error } = await paymentService.getPayments();
+      const { data, error } = await supabase
+        .from('payments_sa2025')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
       if (error) throw error;
       setPayments(data || []);
     } catch (error) {
@@ -211,16 +233,21 @@ export const AppProvider = ({ children }) => {
 
   const loadProducts = async () => {
     try {
-      const [productsResult, categoriesResult] = await Promise.all([
-        storeService.getProducts(),
-        storeService.getCategories()
-      ]);
+      const { data: productsData, error: productsError } = await supabase
+        .from('products_sa2025')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('product_categories_sa2025')
+        .select('*')
+        .order('name');
       
-      if (productsResult.error) throw productsResult.error;
-      if (categoriesResult.error) throw categoriesResult.error;
+      if (productsError) throw productsError;
+      if (categoriesError) throw categoriesError;
       
-      setProducts(productsResult.data || []);
-      setProductCategories(categoriesResult.data || []);
+      setProducts(productsData || []);
+      setProductCategories(categoriesData || []);
     } catch (error) {
       console.error('Error loading products:', error);
       // Keep existing mock data
@@ -229,7 +256,11 @@ export const AppProvider = ({ children }) => {
 
   const loadEvents = async () => {
     try {
-      const { data, error } = await eventService.getEvents();
+      const { data, error } = await supabase
+        .from('events_sa2025')
+        .select('*')
+        .order('date_time', { ascending: true });
+        
       if (error) throw error;
       setEvents(data || []);
     } catch (error) {
@@ -240,7 +271,12 @@ export const AppProvider = ({ children }) => {
 
   const loadLocations = async () => {
     try {
-      const { data, error } = await eventService.getLocations();
+      const { data, error } = await supabase
+        .from('locations_sa2025')
+        .select('*')
+        .eq('active_status', true)
+        .order('name');
+        
       if (error) throw error;
       setLocations(data || []);
     } catch (error) {
@@ -373,6 +409,7 @@ export const AppProvider = ({ children }) => {
   const value = {
     // Data
     users,
+    students,
     payments,
     products,
     productCategories,
