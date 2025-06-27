@@ -11,7 +11,7 @@ export const useApp = () => {
   return context;
 };
 
-export const AppProvider = ({ children: reactChildren }) => {
+export const AppProvider = ({ children }) => {
   // Users Management
   const [users, setUsers] = useState([
     {
@@ -68,7 +68,7 @@ export const AppProvider = ({ children: reactChildren }) => {
     }
   ]);
 
-  // Students/Children Management
+  // Students Management
   const [students, setStudents] = useState([
     {
       id: '1',
@@ -691,7 +691,7 @@ export const AppProvider = ({ children: reactChildren }) => {
 
   return (
     <AppContext.Provider value={value}>
-      {reactChildren}
+      {children}
     </AppContext.Provider>
   );
 };
