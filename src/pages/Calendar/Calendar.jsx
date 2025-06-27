@@ -8,11 +8,11 @@ import AddEventModal from '../../components/modals/AddEventModal';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay } from 'date-fns';
 import { toast } from 'react-toastify';
 
-const { FiCalendar, FiClock, FiMapPin, FiUsers, FiPlus, FiChevronLeft, FiChevronRight, FiEdit2, FiTrash2 } = FiIcons;
+const { FiCalendar, FiClock, FiMapPin, FiUsers, FiPlus, FiChevronLeft, FiChevronRight, FiEdit2, FiTrash2, FiExternalLink } = FiIcons;
 
 const Calendar = () => {
   const { t } = useTheme();
-  const { events, deleteEvent } = useApp();
+  const { events, deleteEvent, getLocationById } = useApp();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
@@ -55,6 +55,19 @@ const Calendar = () => {
     }
   };
 
+  const generateGoogleMapsLink = (location) => {
+    if (!location) return null;
+    
+    const locationData = getLocationById(location);
+    if (locationData?.googleMapsLink) {
+      return locationData.googleMapsLink;
+    }
+    
+    // Generate Google Maps search URL
+    const query = locationData?.address || location;
+    return `https://www.google.com/maps/search/?q=${encodeURIComponent(query)}`;
+  };
+
   const selectedDateEvents = getEventsForDate(selectedDate);
 
   return (
@@ -71,10 +84,7 @@ const Calendar = () => {
         </div>
         <div className="flex items-center space-x-3 mt-4 sm:mt-0">
           <button
-            onClick={() => {
-              setEditingEvent(null);
-              setShowAddModal(true);
-            }}
+            onClick={() => { setEditingEvent(null); setShowAddModal(true); }}
             className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             <SafeIcon icon={FiPlus} className="h-4 w-4 mr-2" />
@@ -136,16 +146,11 @@ const Calendar = () => {
                     isSelected ? 'bg-primary-50 border-primary-200' : ''
                   } ${!isCurrentMonth ? 'text-gray-300' : ''}`}
                 >
-                  <span
-                    className={`text-sm font-medium ${
-                      isCurrentDay
-                        ? 'bg-primary-600 text-white rounded-full w-6 h-6 flex items-center justify-center mx-auto'
-                        : ''
-                    }`}
-                  >
+                  <span className={`text-sm font-medium ${
+                    isCurrentDay ? 'bg-primary-600 text-white rounded-full w-6 h-6 flex items-center justify-center mx-auto' : ''
+                  }`}>
                     {format(day, 'd')}
                   </span>
-                  
                   {/* Event indicators */}
                   <div className="mt-1 space-y-1">
                     {dayEvents.slice(0, 2).map(event => (
@@ -180,61 +185,74 @@ const Calendar = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {format(selectedDate, 'EEEE, MMMM d')}
             </h3>
-            
             {selectedDateEvents.length === 0 ? (
               <p className="text-gray-500 text-sm">No events scheduled</p>
             ) : (
               <div className="space-y-3">
-                {selectedDateEvents.map(event => (
-                  <div key={event.id} className="border border-gray-200 rounded-lg p-3">
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-medium text-gray-900 text-sm">{event.title}</h4>
-                      <div className="flex items-center space-x-1">
-                        <button
-                          onClick={() => handleEditEvent(event)}
-                          className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <SafeIcon icon={FiEdit2} className="h-3 w-3" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteEvent(event.id)}
-                          className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <SafeIcon icon={FiTrash2} className="h-3 w-3" />
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <span className={`inline-block px-2 py-1 text-xs rounded-full mb-2 ${
-                      event.type === 'training' ? 'bg-blue-100 text-blue-800' :
-                      event.type === 'match' ? 'bg-green-100 text-green-800' :
-                      'bg-purple-100 text-purple-800'
-                    }`}>
-                      {event.type}
-                    </span>
-                    
-                    <div className="space-y-1 text-xs text-gray-600">
-                      <div className="flex items-center">
-                        <SafeIcon icon={FiClock} className="h-3 w-3 mr-1" />
-                        {event.time} ({event.duration} min)
-                      </div>
-                      <div className="flex items-center">
-                        <SafeIcon icon={FiMapPin} className="h-3 w-3 mr-1" />
-                        {event.location}
-                      </div>
-                      {event.participants && event.participants.length > 0 && (
-                        <div className="flex items-center">
-                          <SafeIcon icon={FiUsers} className="h-3 w-3 mr-1" />
-                          {event.participants.length} participants
+                {selectedDateEvents.map(event => {
+                  const location = getLocationById(event.locationId);
+                  const mapsLink = generateGoogleMapsLink(event.locationId);
+                  
+                  return (
+                    <div key={event.id} className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-gray-900 text-sm">{event.title}</h4>
+                        <div className="flex items-center space-x-1">
+                          <button
+                            onClick={() => handleEditEvent(event)}
+                            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                          >
+                            <SafeIcon icon={FiEdit2} className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteEvent(event.id)}
+                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                          >
+                            <SafeIcon icon={FiTrash2} className="h-3 w-3" />
+                          </button>
                         </div>
+                      </div>
+                      <span className={`inline-block px-2 py-1 text-xs rounded-full mb-2 ${
+                        event.type === 'training' ? 'bg-blue-100 text-blue-800' : 
+                        event.type === 'match' ? 'bg-green-100 text-green-800' : 
+                        'bg-purple-100 text-purple-800'
+                      }`}>
+                        {event.type}
+                      </span>
+                      <div className="space-y-1 text-xs text-gray-600">
+                        <div className="flex items-center">
+                          <SafeIcon icon={FiClock} className="h-3 w-3 mr-1" />
+                          {event.time} ({event.duration} min)
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <SafeIcon icon={FiMapPin} className="h-3 w-3 mr-1" />
+                            <span>{location?.name || 'Location'}</span>
+                          </div>
+                          {mapsLink && (
+                            <a
+                              href={mapsLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-700 ml-2"
+                            >
+                              <SafeIcon icon={FiExternalLink} className="h-3 w-3" />
+                            </a>
+                          )}
+                        </div>
+                        {event.participants && event.participants.length > 0 && (
+                          <div className="flex items-center">
+                            <SafeIcon icon={FiUsers} className="h-3 w-3 mr-1" />
+                            {event.participants.length} participants
+                          </div>
+                        )}
+                      </div>
+                      {event.description && (
+                        <p className="text-xs text-gray-600 mt-2">{event.description}</p>
                       )}
                     </div>
-                    
-                    {event.description && (
-                      <p className="text-xs text-gray-600 mt-2">{event.description}</p>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -269,10 +287,7 @@ const Calendar = () => {
       {/* Add/Edit Event Modal */}
       <AddEventModal
         isOpen={showAddModal}
-        onClose={() => {
-          setShowAddModal(false);
-          setEditingEvent(null);
-        }}
+        onClose={() => { setShowAddModal(false); setEditingEvent(null); }}
         event={editingEvent}
       />
     </div>
