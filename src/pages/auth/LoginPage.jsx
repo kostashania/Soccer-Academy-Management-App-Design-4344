@@ -11,7 +11,7 @@ import { toast } from 'react-toastify';
 const { FiMail, FiLock, FiEye, FiEyeOff, FiBriefcase } = FiIcons;
 
 const LoginPage = () => {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, loading: authLoading } = useAuth();
   const { t } = useTheme();
   const [formData, setFormData] = useState({
     email: '',
@@ -28,13 +28,24 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const result = await login(formData.email, formData.password);
-    if (result.success) {
-      toast.success(`Welcome back, ${result.user.full_name || result.user.email}!`);
-    } else {
-      toast.error(result.error || 'Login failed');
+    try {
+      console.log('Submitting login form for:', formData.email);
+      const result = await login(formData.email, formData.password);
+      
+      if (result.success) {
+        console.log('Login successful, user:', result.user);
+        toast.success(`Welcome back, ${result.user.full_name || result.user.email}!`);
+        // Navigation will be handled by the auth context and App component
+      } else {
+        console.error('Login failed:', result.error);
+        toast.error(result.error || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login exception:', error);
+      toast.error('An error occurred during login');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleChange = (e) => {
@@ -47,19 +58,19 @@ const LoginPage = () => {
   const quickLogin = async (email) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: 'password123'
-      });
-
-      if (error) {
-        toast.error('Login failed: ' + error.message);
-        return;
+      console.log('Quick login for:', email);
+      
+      const result = await login(email, 'password123');
+      
+      if (result.success) {
+        console.log('Quick login successful');
+        toast.success('Logged in successfully!');
+      } else {
+        console.error('Quick login failed:', result.error);
+        toast.error('Login failed: ' + result.error);
       }
-
-      toast.success('Logged in successfully!');
-      window.location.hash = '/dashboard';
     } catch (error) {
+      console.error('Quick login error:', error);
       toast.error('Login error: ' + error.message);
     } finally {
       setLoading(false);
@@ -73,6 +84,14 @@ const LoginPage = () => {
     { role: 'player', email: 'player@academy.com', name: 'Player Demo' },
     { role: 'sponsor', email: 'sponsor@nike.com', name: 'Nike Sponsor' }
   ];
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex">

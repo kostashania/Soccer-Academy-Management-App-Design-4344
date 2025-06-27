@@ -23,12 +23,43 @@ export const AuthProvider = ({ children }) => {
     const getInitialSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        
+        if (session?.user) {
+          console.log('Initial session found:', session.user.email);
           setUser(session.user);
           setIsAuthenticated(true);
+          
           // Get user profile
-          const { data: profileData } = await userService.getUserProfile(session.user.id);
-          setProfile(profileData);
+          try {
+            const { data: profileData, error: profileError } = await userService.getUserProfile(session.user.id);
+            if (profileError) {
+              console.warn('Profile error:', profileError);
+              // Create a basic profile if none exists
+              const basicProfile = {
+                id: session.user.id,
+                full_name: session.user.user_metadata?.full_name || session.user.email,
+                email: session.user.email,
+                role: session.user.user_metadata?.role || 'player',
+                auth_user_id: session.user.id
+              };
+              setProfile(basicProfile);
+            } else {
+              setProfile(profileData);
+            }
+          } catch (profileErr) {
+            console.error('Error fetching profile:', profileErr);
+            // Fallback profile
+            const fallbackProfile = {
+              id: session.user.id,
+              full_name: session.user.user_metadata?.full_name || session.user.email,
+              email: session.user.email,
+              role: session.user.user_metadata?.role || 'player',
+              auth_user_id: session.user.id
+            };
+            setProfile(fallbackProfile);
+          }
+        } else {
+          console.log('No initial session found');
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
@@ -42,14 +73,39 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (session) {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (session?.user) {
           setUser(session.user);
           setIsAuthenticated(true);
+          
           try {
-            const { data: profileData } = await userService.getUserProfile(session.user.id);
-            setProfile(profileData);
-          } catch (error) {
-            console.error('Error fetching profile:', error);
+            const { data: profileData, error: profileError } = await userService.getUserProfile(session.user.id);
+            if (profileError) {
+              console.warn('Profile error on auth change:', profileError);
+              // Create basic profile
+              const basicProfile = {
+                id: session.user.id,
+                full_name: session.user.user_metadata?.full_name || session.user.email,
+                email: session.user.email,
+                role: session.user.user_metadata?.role || 'player',
+                auth_user_id: session.user.id
+              };
+              setProfile(basicProfile);
+            } else {
+              setProfile(profileData);
+            }
+          } catch (profileErr) {
+            console.error('Error fetching profile on auth change:', profileErr);
+            // Fallback profile
+            const fallbackProfile = {
+              id: session.user.id,
+              full_name: session.user.user_metadata?.full_name || session.user.email,
+              email: session.user.email,
+              role: session.user.user_metadata?.role || 'player',
+              auth_user_id: session.user.id
+            };
+            setProfile(fallbackProfile);
           }
         } else {
           setUser(null);
@@ -66,16 +122,65 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setLoading(true);
-      const { data, error } = await authService.signIn(email, password);
+      console.log('Attempting login for:', email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
       if (error) {
+        console.error('Login error:', error);
         return { success: false, error: error.message };
       }
-      
-      setUser(data.user);
-      setProfile(data.profile);
-      setIsAuthenticated(true);
-      return { success: true, user: { ...data.user, ...data.profile } };
+
+      if (data?.user) {
+        console.log('Login successful for:', data.user.email);
+        
+        // Get user profile
+        try {
+          const { data: profileData, error: profileError } = await userService.getUserProfile(data.user.id);
+          
+          if (profileError) {
+            console.warn('Profile error after login:', profileError);
+            // Create basic profile from auth data
+            const basicProfile = {
+              id: data.user.id,
+              full_name: data.user.user_metadata?.full_name || data.user.email,
+              email: data.user.email,
+              role: data.user.user_metadata?.role || 'player',
+              auth_user_id: data.user.id
+            };
+            setProfile(basicProfile);
+            setUser(data.user);
+            setIsAuthenticated(true);
+            return { success: true, user: { ...data.user, ...basicProfile } };
+          } else {
+            setProfile(profileData);
+            setUser(data.user);
+            setIsAuthenticated(true);
+            return { success: true, user: { ...data.user, ...profileData } };
+          }
+        } catch (profileErr) {
+          console.error('Error fetching profile after login:', profileErr);
+          // Still allow login with fallback profile
+          const fallbackProfile = {
+            id: data.user.id,
+            full_name: data.user.user_metadata?.full_name || data.user.email,
+            email: data.user.email,
+            role: data.user.user_metadata?.role || 'player',
+            auth_user_id: data.user.id
+          };
+          setProfile(fallbackProfile);
+          setUser(data.user);
+          setIsAuthenticated(true);
+          return { success: true, user: { ...data.user, ...fallbackProfile } };
+        }
+      }
+
+      return { success: false, error: 'Login failed' };
     } catch (error) {
+      console.error('Login exception:', error);
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
@@ -84,7 +189,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await authService.signOut();
+      console.log('Logging out...');
+      await supabase.auth.signOut();
       setUser(null);
       setProfile(null);
       setIsAuthenticated(false);
@@ -95,9 +201,11 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = async (updatedData) => {
     try {
-      if (!profile) return;
+      if (!profile) return { success: false, error: 'No profile found' };
+
       const { data, error } = await userService.updateUser(profile.id, updatedData);
       if (error) throw error;
+
       setProfile(data);
       return { success: true, data };
     } catch (error) {
@@ -108,10 +216,10 @@ export const AuthProvider = ({ children }) => {
 
   const hasPermission = (permission) => {
     if (!profile) return false;
-    
+
     // Admin has all permissions
     if (profile.role === 'admin') return true;
-    
+
     // Define role-based permissions
     const rolePermissions = {
       admin: ['*'],
@@ -121,15 +229,15 @@ export const AuthProvider = ({ children }) => {
       player: ['schedule', 'attendance', 'profile', 'messages'],
       board_member: ['reports', 'analytics'],
       marketing: ['sponsors', 'marketing', 'analytics'],
-      sponsor: ['profile', 'ads', 'analytics'] // Sponsor permissions
+      sponsor: ['profile', 'ads', 'analytics']
     };
-    
+
     const permissions = rolePermissions[profile.role] || [];
     return permissions.includes('*') || permissions.includes(permission);
   };
 
   const value = {
-    user: user ? { ...user, ...profile } : null,
+    user: profile ? { ...user, ...profile } : null,
     profile,
     isAuthenticated,
     loading,

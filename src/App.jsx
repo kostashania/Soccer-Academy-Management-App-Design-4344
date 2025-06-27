@@ -29,15 +29,28 @@ import Cart from './pages/Cart/Cart';
 import Messages from './pages/Messages/Messages';
 import Profile from './pages/Profile/Profile';
 
+// Loading component
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+  </div>
+);
+
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   if (!isAuthenticated) {
+    console.log('Not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+    console.log('Role not allowed:', user?.role, 'Allowed:', allowedRoles);
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -46,7 +59,13 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
 // Role-based Dashboard Router
 const DashboardRouter = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  console.log('Rendering dashboard for role:', user?.role);
 
   switch (user?.role) {
     case 'admin':
@@ -64,6 +83,21 @@ const DashboardRouter = () => {
   }
 };
 
+// Auth Guard Component
+const AuthGuard = ({ children }) => {
+  const { loading, isAuthenticated } = useAuth();
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+};
+
 function App() {
   return (
     <ThemeProvider>
@@ -73,8 +107,22 @@ function App() {
             <div className="App min-h-screen bg-gray-50">
               <Routes>
                 {/* Public Routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
+                <Route 
+                  path="/login" 
+                  element={
+                    <AuthGuard>
+                      <LoginPage />
+                    </AuthGuard>
+                  } 
+                />
+                <Route 
+                  path="/signup" 
+                  element={
+                    <AuthGuard>
+                      <SignupPage />
+                    </AuthGuard>
+                  } 
+                />
 
                 {/* Protected Routes */}
                 <Route
@@ -86,10 +134,24 @@ function App() {
                           <Route path="/" element={<Navigate to="/dashboard" replace />} />
                           <Route path="/dashboard" element={<DashboardRouter />} />
                           <Route path="/calendar" element={<Calendar />} />
-                          <Route path="/payments" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'parent']}><Payments /></ProtectedRoute>} />
+                          <Route
+                            path="/payments"
+                            element={
+                              <ProtectedRoute allowedRoles={['admin', 'manager', 'parent']}>
+                                <Payments />
+                              </ProtectedRoute>
+                            }
+                          />
                           <Route path="/store" element={<Store />} />
                           <Route path="/cart" element={<Cart />} />
-                          <Route path="/messages" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'coach', 'parent', 'player']}><Messages /></ProtectedRoute>} />
+                          <Route
+                            path="/messages"
+                            element={
+                              <ProtectedRoute allowedRoles={['admin', 'manager', 'coach', 'parent', 'player']}>
+                                <Messages />
+                              </ProtectedRoute>
+                            }
+                          />
                           <Route path="/profile" element={<Profile />} />
 
                           {/* Admin Only Routes */}
