@@ -1,23 +1,12 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import * as FiIcons from 'react-icons/fi';
-import SafeIcon from '../../common/SafeIcon';
+import { FiMail, FiLock } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts/ThemeContext';
-import { supabase } from '../../lib/supabase';
 import { toast } from 'react-toastify';
 
-const { FiMail, FiLock, FiEye, FiEyeOff, FiBriefcase } = FiIcons;
-
 const LoginPage = () => {
-  const { login, isAuthenticated, loading: authLoading } = useAuth();
-  const { t } = useTheme();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [showPassword, setShowPassword] = useState(false);
+  const { login, isAuthenticated } = useAuth();
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
 
   if (isAuthenticated) {
@@ -28,205 +17,113 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      console.log('Submitting login form for:', formData.email);
-      const result = await login(formData.email, formData.password);
-      
-      if (result.success) {
-        console.log('Login successful, user:', result.user);
-        toast.success(`Welcome back, ${result.user.full_name || result.user.email}!`);
-        // Navigation will be handled by the auth context and App component
-      } else {
-        console.error('Login failed:', result.error);
-        toast.error(result.error || 'Login failed');
-      }
-    } catch (error) {
-      console.error('Login exception:', error);
-      toast.error('An error occurred during login');
-    } finally {
-      setLoading(false);
+    const result = await login(formData.email, formData.password);
+    
+    if (result.success) {
+      toast.success('Login successful!');
+    } else {
+      toast.error(result.error || 'Login failed');
     }
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    
+    setLoading(false);
   };
 
   const quickLogin = async (email) => {
-    try {
-      setLoading(true);
-      console.log('Quick login for:', email);
-      
-      const result = await login(email, 'password123');
-      
-      if (result.success) {
-        console.log('Quick login successful');
-        toast.success('Logged in successfully!');
-      } else {
-        console.error('Quick login failed:', result.error);
-        toast.error('Login failed: ' + result.error);
-      }
-    } catch (error) {
-      console.error('Quick login error:', error);
-      toast.error('Login error: ' + error.message);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const result = await login(email, 'password123');
+    
+    if (result.success) {
+      toast.success('Login successful!');
+    } else {
+      toast.error('Login failed');
     }
+    
+    setLoading(false);
   };
 
   const demoAccounts = [
     { role: 'admin', email: 'admin@academy.com', name: 'Admin Demo' },
     { role: 'coach', email: 'coach@academy.com', name: 'Coach Demo' },
     { role: 'parent', email: 'parent@academy.com', name: 'Parent Demo' },
-    { role: 'player', email: 'player@academy.com', name: 'Player Demo' },
-    { role: 'sponsor', email: 'sponsor@nike.com', name: 'Nike Sponsor' }
+    { role: 'player', email: 'player@academy.com', name: 'Player Demo' }
   ];
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Hero Image */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 to-primary-800 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-20" />
+      {/* Left side - Image */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 relative">
         <img
           src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=600&fit=crop"
           alt="Soccer Academy"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover opacity-20"
         />
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-5xl font-bold mb-6">
-              Soccer Academy
-            </h1>
-            <p className="text-xl leading-relaxed mb-8">
-              Professional management system for modern soccer academies. Track players, schedules, payments, and more with role-based access control.
-            </p>
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-2xl">⚽</span>
-              </div>
-              <div>
-                <p className="font-semibold">Powered by Supabase</p>
-                <p className="text-primary-100">Secure, scalable, and fast</p>
-              </div>
-            </div>
-          </motion.div>
+          <h1 className="text-5xl font-bold mb-6">Soccer Academy</h1>
+          <p className="text-xl">Professional management system for modern soccer academies.</p>
         </div>
       </div>
 
       {/* Right side - Login Form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-12 lg:px-16">
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="max-w-md mx-auto w-full"
-        >
+        <div className="max-w-md mx-auto w-full">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {t('welcome')} Back
-            </h2>
-            <p className="text-gray-600">
-              Sign in to your Soccer Academy account
-            </p>
+            <h2 className="text-3xl font-bold mb-2">Welcome Back</h2>
+            <p className="text-gray-600">Sign in to your Soccer Academy account</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                {t('email')}
-              </label>
+              <label className="block text-sm font-medium mb-2">Email</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <SafeIcon icon={FiMail} className="h-5 w-5 text-gray-400" />
-                </div>
+                <FiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  id="email"
-                  name="email"
                   type="email"
                   required
                   value={formData.email}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter your email"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                {t('password')}
-              </label>
+              <label className="block text-sm font-medium mb-2">Password</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <SafeIcon icon={FiLock} className="h-5 w-5 text-gray-400" />
-                </div>
+                <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type="password"
                   required
                   value={formData.password}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter your password"
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  <SafeIcon
-                    icon={showPassword ? FiEyeOff : FiEye}
-                    className="h-5 w-5 text-gray-400 hover:text-gray-600"
-                  />
-                </button>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              {loading ? t('loading') : t('login')}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
-          {/* Quick Login Demo Accounts */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <div className="text-center mb-4">
-              <p className="text-sm text-gray-600 mb-4">
-                Quick demo login (click to instantly access):
-              </p>
-            </div>
+          {/* Demo Accounts */}
+          <div className="mt-8 pt-6 border-t">
+            <p className="text-sm text-gray-600 mb-4 text-center">Quick demo login:</p>
             <div className="grid grid-cols-1 gap-2">
               {demoAccounts.map((account) => (
                 <button
                   key={account.email}
                   onClick={() => quickLogin(account.email)}
                   disabled={loading}
-                  className="flex items-center justify-between px-4 py-2 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors disabled:opacity-50"
+                  className="flex items-center justify-between px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
                 >
-                  <span className="font-medium text-primary-700 capitalize flex items-center">
-                    {account.role === 'sponsor' && <SafeIcon icon={FiBriefcase} className="h-4 w-4 mr-2" />}
-                    {account.name}
-                  </span>
-                  <span className="text-sm text-primary-600">{account.email}</span>
+                  <span className="font-medium text-blue-700 capitalize">{account.name}</span>
+                  <span className="text-sm text-blue-600">{account.email}</span>
                 </button>
               ))}
             </div>
@@ -234,22 +131,7 @@ const LoginPage = () => {
               All demo accounts use password: <code className="bg-gray-100 px-1 rounded">password123</code>
             </p>
           </div>
-
-          {/* Create Account Link */}
-          <div className="mt-6">
-            <div className="text-center">
-              <a
-                href="#/signup"
-                className="inline-flex items-center px-4 py-2 border border-primary-600 text-sm font-medium rounded-lg text-primary-600 bg-white hover:bg-primary-50 transition-colors"
-              >
-                Create Demo Accounts
-              </a>
-            </div>
-            <p className="text-xs text-gray-500 mt-4 text-center">
-              Create accounts for different roles (Admin, Coach, Parent, etc.) to test the system.
-            </p>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
