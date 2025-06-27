@@ -9,17 +9,18 @@ import AddProductModal from '../../components/modals/AddProductModal';
 import ProductViewModal from '../../components/modals/ProductViewModal';
 import { toast } from 'react-toastify';
 
-const { 
-  FiShoppingBag, FiPackage, FiTrendingUp, FiAlertTriangle, FiPlus, 
-  FiSearch, FiFilter, FiShoppingCart, FiEye, FiEdit2, FiTrash2 
-} = FiIcons;
+const { FiShoppingBag, FiPackage, FiTrendingUp, FiAlertTriangle, FiPlus, FiSearch, FiFilter, FiShoppingCart, FiEye, FiEdit2, FiTrash2 } = FiIcons;
 
 const Store = () => {
   const { t } = useTheme();
   const { user } = useAuth();
   const { products, addToCart, cartItems, deleteProduct, productCategories } = useApp();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [priceRange, setPriceRange] = useState('all');
+  const [stockStatus, setStockStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('name-asc');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [viewingProduct, setViewingProduct] = useState(null);
@@ -70,11 +71,52 @@ const Store = () => {
     }
   };
 
+  // Apply filters
   const filteredProducts = products.filter(product => {
+    // Search filter
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Category filter
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    
+    // Price range filter
+    let matchesPrice = true;
+    if (priceRange === '0-50') {
+      matchesPrice = product.price <= 50;
+    } else if (priceRange === '50-100') {
+      matchesPrice = product.price > 50 && product.price <= 100;
+    } else if (priceRange === '100+') {
+      matchesPrice = product.price > 100;
+    }
+    
+    // Stock status filter
+    let matchesStock = true;
+    if (stockStatus === 'in-stock') {
+      matchesStock = product.status === 'in-stock';
+    } else if (stockStatus === 'low-stock') {
+      matchesStock = product.status === 'low-stock';
+    } else if (stockStatus === 'out-of-stock') {
+      matchesStock = product.status === 'out-of-stock';
+    }
+    
+    return matchesSearch && matchesCategory && matchesPrice && matchesStock;
+  }).sort((a, b) => {
+    // Apply sorting
+    switch (sortBy) {
+      case 'name-asc':
+        return a.name.localeCompare(b.name);
+      case 'name-desc':
+        return b.name.localeCompare(a.name);
+      case 'price-asc':
+        return a.price - b.price;
+      case 'price-desc':
+        return b.price - a.price;
+      case 'popular':
+        return b.sold - a.sold;
+      default:
+        return 0;
+    }
   });
 
   const handleAddToCart = (product) => {
@@ -166,9 +208,7 @@ const Store = () => {
                 </div>
               </div>
               <div className="mt-4 flex items-center">
-                <span className={`text-sm font-medium ${
-                  stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                }`}>
+                <span className={`text-sm font-medium ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}`}>
                   {stat.change}
                 </span>
                 <span className="text-sm text-gray-500 ml-2">from last month</span>
@@ -204,7 +244,7 @@ const Store = () => {
               ))}
             </select>
           </div>
-          <button 
+          <button
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
@@ -212,7 +252,7 @@ const Store = () => {
             More Filters
           </button>
         </div>
-        
+
         {/* Additional Filters */}
         {showFilters && (
           <motion.div
@@ -224,30 +264,42 @@ const Store = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                  <option>All Prices</option>
-                  <option>€0 - €50</option>
-                  <option>€50 - €100</option>
-                  <option>€100+</option>
+                <select 
+                  value={priceRange}
+                  onChange={(e) => setPriceRange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="all">All Prices</option>
+                  <option value="0-50">€0 - €50</option>
+                  <option value="50-100">€50 - €100</option>
+                  <option value="100+">€100+</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Stock Status</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                  <option>All Status</option>
-                  <option>In Stock</option>
-                  <option>Low Stock</option>
-                  <option>Out of Stock</option>
+                <select 
+                  value={stockStatus}
+                  onChange={(e) => setStockStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="all">All Status</option>
+                  <option value="in-stock">In Stock</option>
+                  <option value="low-stock">Low Stock</option>
+                  <option value="out-of-stock">Out of Stock</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                  <option>Name A-Z</option>
-                  <option>Name Z-A</option>
-                  <option>Price Low-High</option>
-                  <option>Price High-Low</option>
-                  <option>Most Popular</option>
+                <select 
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="name-asc">Name A-Z</option>
+                  <option value="name-desc">Name Z-A</option>
+                  <option value="price-asc">Price Low-High</option>
+                  <option value="price-desc">Price High-Low</option>
+                  <option value="popular">Most Popular</option>
                 </select>
               </div>
             </div>
@@ -293,23 +345,19 @@ const Store = () => {
                 </div>
               )}
             </div>
-            
             <div className="p-4">
               <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
               <p className="text-sm text-gray-600 mb-2">SKU: {product.sku}</p>
-              
               <div className="flex items-center justify-between mb-3">
                 <span className="text-lg font-bold text-gray-900">€{product.price.toFixed(2)}</span>
                 <span className="text-sm text-gray-600">{product.stock} in stock</span>
               </div>
-              
               {canManageProducts && (
                 <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
                   <span>Sold: {product.sold}</span>
                   <span className="capitalize">{product.category}</span>
                 </div>
               )}
-              
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleAddToCart(product)}
@@ -319,7 +367,7 @@ const Store = () => {
                   <SafeIcon icon={FiShoppingCart} className="h-4 w-4 mr-1" />
                   {product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
                 </button>
-                <button 
+                <button
                   onClick={() => handleViewProduct(product)}
                   className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >

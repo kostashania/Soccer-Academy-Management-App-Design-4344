@@ -8,13 +8,13 @@ import { toast } from 'react-toastify';
 const { FiX, FiCalendar, FiClock, FiMapPin, FiUsers, FiType } = FiIcons;
 
 const AddEventModal = ({ isOpen, onClose, event = null }) => {
-  const { addEvent, updateEvent, users } = useApp();
+  const { addEvent, updateEvent, users, locations } = useApp();
   const [formData, setFormData] = useState({
     title: event?.title || '',
     date: event?.date ? new Date(event.date).toISOString().split('T')[0] : '',
     time: event?.time || '',
     duration: event?.duration || 90,
-    location: event?.location || '',
+    locationId: event?.locationId || '',
     type: event?.type || 'training',
     participants: event?.participants || [],
     coach: event?.coach || '',
@@ -23,8 +23,7 @@ const AddEventModal = ({ isOpen, onClose, event = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (!formData.title || !formData.date || !formData.time || !formData.location) {
+    if (!formData.title || !formData.date || !formData.time || !formData.locationId) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -41,24 +40,17 @@ const AddEventModal = ({ isOpen, onClose, event = null }) => {
       addEvent(eventData);
       toast.success('Event created successfully!');
     }
-
     onClose();
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleParticipantsChange = (e) => {
     const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-    setFormData(prev => ({
-      ...prev,
-      participants: selectedOptions
-    }));
+    setFormData(prev => ({ ...prev, participants: selectedOptions }));
   };
 
   const coaches = users.filter(user => user.role === 'coach');
@@ -76,7 +68,6 @@ const AddEventModal = ({ isOpen, onClose, event = null }) => {
               className="fixed inset-0 bg-black bg-opacity-50"
               onClick={onClose}
             />
-            
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -133,7 +124,6 @@ const AddEventModal = ({ isOpen, onClose, event = null }) => {
                       />
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Time *
@@ -173,15 +163,20 @@ const AddEventModal = ({ isOpen, onClose, event = null }) => {
                   </label>
                   <div className="relative">
                     <SafeIcon icon={FiMapPin} className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      name="location"
-                      value={formData.location}
+                    <select
+                      name="locationId"
+                      value={formData.locationId}
                       onChange={handleInputChange}
                       className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      placeholder="Enter location"
                       required
-                    />
+                    >
+                      <option value="">Select a location</option>
+                      {locations.map(location => (
+                        <option key={location.id} value={location.id}>
+                          {location.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

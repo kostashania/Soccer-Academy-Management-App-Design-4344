@@ -20,7 +20,6 @@ const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     if (!formData.studentName || !formData.parentName || !formData.amount) {
       toast.error('Please fill in all required fields');
       return;
@@ -28,7 +27,8 @@ const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
 
     const paymentData = {
       ...formData,
-      amount: parseFloat(formData.amount)
+      amount: parseFloat(formData.amount),
+      currency: 'EUR'
     };
 
     if (payment) {
@@ -38,16 +38,12 @@ const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
       addPayment(paymentData);
       toast.success('Payment added successfully!');
     }
-
     onClose();
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const parents = users.filter(user => user.role === 'parent');
@@ -65,7 +61,6 @@ const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
               className="fixed inset-0 bg-black bg-opacity-50"
               onClick={onClose}
             />
-            
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -138,13 +133,13 @@ const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
                     Amount (€) *
                   </label>
                   <div className="relative">
-                    <SafeIcon icon={FiDollarSign} className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                     <input
                       type="number"
                       name="amount"
                       value={formData.amount}
                       onChange={handleInputChange}
-                      className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="pl-8 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       placeholder="0.00"
                       min="0"
                       step="0.01"
@@ -168,7 +163,6 @@ const AddPaymentModal = ({ isOpen, onClose, payment = null }) => {
                       <option value="card">Credit Card</option>
                       <option value="bank">Bank Transfer</option>
                       <option value="cash">Cash</option>
-                      <option value="check">Check</option>
                     </select>
                   </div>
                 </div>
