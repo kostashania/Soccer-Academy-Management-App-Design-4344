@@ -27,17 +27,37 @@ const SignupPage = () => {
     setLoading(true);
 
     try {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
+      let authData = null;
+      let authError = null;
+
+      // Try admin API first (auto-confirms email)
+      try {
+        const result = await supabase.auth.admin.createUser({
+          email: formData.email,
+          password: formData.password,
+          email_confirm: true,
+          user_metadata: {
             full_name: formData.full_name,
             role: formData.role
           }
-        }
-      });
+        });
+        authData = result.data;
+        authError = result.error;
+      } catch (adminError) {
+        // Fallback to regular signup
+        const result = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.full_name,
+              role: formData.role
+            }
+          }
+        });
+        authData = result.data;
+        authError = result.error;
+      }
 
       if (authError) {
         toast.error(authError.message);
@@ -45,7 +65,12 @@ const SignupPage = () => {
         return;
       }
 
-      if (authData.user) {
+      if (authData?.user) {
+        // If using regular signup, confirm the email manually
+        if (!authData.user.email_confirmed_at) {
+          await supabase.rpc('confirm_demo_user', { user_email: formData.email });
+        }
+
         // Create profile
         const profileData = {
           auth_user_id: authData.user.id,
@@ -106,17 +131,38 @@ const SignupPage = () => {
   const createDemoAccount = async (role, name, email, extraData = {}) => {
     setLoading(true);
     try {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email,
-        password: 'password123',
-        options: {
-          data: {
+      let authData = null;
+      let authError = null;
+      
+      // Try admin API first (auto-confirms email)
+      try {
+        const result = await supabase.auth.admin.createUser({
+          email: email,
+          password: 'password123',
+          email_confirm: true,
+          user_metadata: {
             full_name: name,
             role: role
           }
-        }
-      });
+        });
+        authData = result.data;
+        authError = result.error;
+      } catch (adminError) {
+        // Fallback to regular signup
+        console.log('Admin API not available, using regular signup');
+        const result = await supabase.auth.signUp({
+          email: email,
+          password: 'password123',
+          options: {
+            data: {
+              full_name: name,
+              role: role
+            }
+          }
+        });
+        authData = result.data;
+        authError = result.error;
+      }
 
       if (authError) {
         toast.error(`Failed to create ${role} account: ${authError.message}`);
@@ -124,7 +170,12 @@ const SignupPage = () => {
         return;
       }
 
-      if (authData.user) {
+      if (authData?.user) {
+        // If using regular signup, confirm the email manually
+        if (!authData.user.email_confirmed_at) {
+          await supabase.rpc('confirm_demo_user', { user_email: email });
+        }
+
         // Create profile
         const profileData = {
           auth_user_id: authData.user.id,
@@ -156,32 +207,41 @@ const SignupPage = () => {
     }
   };
 
+  const createAllDemoAccounts = async () => {
+    setLoading(true);
+    const demoAccounts = [
+      { role: 'admin', name: 'Admin Demo', email: 'admin@academy.com' },
+      { role: 'manager', name: 'Manager Demo', email: 'manager@academy.com' },
+      { role: 'coach', name: 'Coach Demo', email: 'coach@academy.com' },
+      { role: 'parent', name: 'Parent Demo', email: 'parent@academy.com' },
+      { role: 'player', name: 'Player Demo', email: 'player@academy.com' },
+      { 
+        role: 'sponsor', 
+        name: 'Nike Sponsor', 
+        email: 'sponsor@nike.com',
+        extraData: {
+          company_name: 'Nike Greece',
+          website_url: 'https://nike.com',
+          package_type: 'gold',
+          logo: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop'
+        }
+      }
+    ];
+
+    for (const account of demoAccounts) {
+      await createDemoAccount(account.role, account.name, account.email, account.extraData);
+      // Small delay between creations
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    setLoading(false);
+  };
+
   const demoAccounts = [
-    { 
-      role: 'admin', 
-      name: 'Admin Demo', 
-      email: 'admin@academy.com' 
-    },
-    { 
-      role: 'manager', 
-      name: 'Manager Demo', 
-      email: 'manager@academy.com' 
-    },
-    { 
-      role: 'coach', 
-      name: 'Coach Demo', 
-      email: 'coach@academy.com' 
-    },
-    { 
-      role: 'parent', 
-      name: 'Parent Demo', 
-      email: 'parent@academy.com' 
-    },
-    { 
-      role: 'player', 
-      name: 'Player Demo', 
-      email: 'player@academy.com' 
-    },
+    { role: 'admin', name: 'Admin Demo', email: 'admin@academy.com' },
+    { role: 'manager', name: 'Manager Demo', email: 'manager@academy.com' },
+    { role: 'coach', name: 'Coach Demo', email: 'coach@academy.com' },
+    { role: 'parent', name: 'Parent Demo', email: 'parent@academy.com' },
+    { role: 'player', name: 'Player Demo', email: 'player@academy.com' },
     { 
       role: 'sponsor', 
       name: 'Nike Sponsor', 
@@ -234,8 +294,20 @@ const SignupPage = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 mb-8">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Demo Setup</h3>
           <p className="text-sm text-gray-600 mb-4">
-            Click to create all demo accounts with one click each:
+            Create all demo accounts at once or individually:
           </p>
+          
+          {/* Create All Button */}
+          <button
+            onClick={createAllDemoAccounts}
+            disabled={loading}
+            className="w-full mb-4 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors font-medium"
+          >
+            {loading ? 'Creating All Accounts...' : '🚀 Create All Demo Accounts'}
+          </button>
+
+          <div className="text-center text-sm text-gray-500 mb-4">or create individually:</div>
+
           <div className="space-y-2">
             {demoAccounts.map((account) => (
               <button
