@@ -5,8 +5,9 @@ import SafeIcon from '../../common/SafeIcon';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useApp } from '../../contexts/AppContext';
+import { toast } from 'react-toastify';
 
-const { FiMessageSquare, FiSend, FiPlus, FiSearch, FiPaperclip, FiMoreVertical, FiCheck, FiCheckCheck, FiClock } = FiIcons;
+const { FiMessageSquare, FiSend, FiPlus, FiSearch, FiPaperclip, FiMoreVertical, FiCheck, FiCheckCheck, FiClock, FiX } = FiIcons;
 
 const Messages = () => {
   const { t } = useTheme();
@@ -16,6 +17,8 @@ const Messages = () => {
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [attachment, setAttachment] = useState(null);
+  const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const [newChatName, setNewChatName] = useState('');
 
   const filteredConversations = conversations.filter(conv =>
     conv.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -26,16 +29,26 @@ const Messages = () => {
     : [];
 
   const handleSendMessage = () => {
+    if (!selectedConversation) {
+      toast.error('Please select a conversation first');
+      return;
+    }
+
     if (newMessage.trim() || attachment) {
-      sendMessage(
-        selectedConversation.id, 
-        user.id, 
-        user.name, 
-        newMessage, 
-        attachment ? [attachment] : []
-      );
-      setNewMessage('');
-      setAttachment(null);
+      try {
+        sendMessage(
+          selectedConversation.id, 
+          user.id, 
+          user.name, 
+          newMessage, 
+          attachment ? [attachment] : []
+        );
+        setNewMessage('');
+        setAttachment(null);
+        toast.success('Message sent!');
+      } catch (error) {
+        toast.error('Failed to send message');
+      }
     }
   };
 
@@ -47,6 +60,21 @@ const Messages = () => {
         size: file.size,
         type: file.type
       });
+      toast.success('File attached!');
+    }
+  };
+
+  const handleCreateNewChat = () => {
+    if (newChatName.trim()) {
+      try {
+        const newConv = createConversation([user.id], newChatName, 'individual');
+        setSelectedConversation(newConv);
+        setNewChatName('');
+        setShowNewChatModal(false);
+        toast.success('New conversation created!');
+      } catch (error) {
+        toast.error('Failed to create conversation');
+      }
     }
   };
 
@@ -80,7 +108,7 @@ const Messages = () => {
           <p className="text-gray-600 mt-1">Communicate with coaches, parents, and players</p>
         </div>
         <button 
-          onClick={() => createConversation([user.id], 'New Chat', 'individual')}
+          onClick={() => setShowNewChatModal(true)}
           className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
         >
           <SafeIcon icon={FiPlus} className="h-4 w-4 mr-2" />
@@ -215,7 +243,7 @@ const Messages = () => {
                     <div className="mb-2 p-2 bg-gray-100 rounded-lg flex items-center justify-between">
                       <span className="text-sm">📎 {attachment.name}</span>
                       <button onClick={() => setAttachment(null)} className="text-red-500 hover:text-red-700">
-                        ✕
+                        <SafeIcon icon={FiX} className="h-4 w-4" />
                       </button>
                     </div>
                   )}
@@ -256,6 +284,46 @@ const Messages = () => {
           </div>
         </div>
       </div>
+
+      {/* New Chat Modal */}
+      {showNewChatModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowNewChatModal(false)} />
+            <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h3 className="text-lg font-semibold">Start New Conversation</h3>
+                <button onClick={() => setShowNewChatModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <SafeIcon icon={FiX} className="h-6 w-6" />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <input
+                  type="text"
+                  placeholder="Conversation name"
+                  value={newChatName}
+                  onChange={(e) => setNewChatName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowNewChatModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateNewChat}
+                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg"
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

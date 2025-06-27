@@ -109,6 +109,68 @@ export const AppProvider = ({ children }) => {
     { id: '4', name: 'Nutrition', description: 'Sports nutrition and supplements' }
   ]);
 
+  // Sponsors and Packages Management
+  const [sponsorPackages, setSponsorPackages] = useState([
+    {
+      id: '1',
+      name: 'Bronze Package',
+      type: 'bronze',
+      price: 500,
+      duration: 1,
+      durationLabel: '1 Month',
+      benefits: ['Logo on website', 'Social media mention', 'Newsletter inclusion'],
+      color: 'bg-amber-100 text-amber-800'
+    },
+    {
+      id: '2',
+      name: 'Silver Package',
+      type: 'silver',
+      price: 1200,
+      duration: 3,
+      durationLabel: '3 Months',
+      benefits: ['Logo on website', 'Social media mention', 'Newsletter inclusion', 'Banner at events'],
+      color: 'bg-gray-100 text-gray-800'
+    },
+    {
+      id: '3',
+      name: 'Gold Package',
+      type: 'gold',
+      price: 2000,
+      duration: 6,
+      durationLabel: '6 Months',
+      benefits: ['Logo on website', 'Social media mention', 'Newsletter inclusion', 'Banner at events', 'Jersey sponsorship'],
+      color: 'bg-yellow-100 text-yellow-800'
+    },
+    {
+      id: '4',
+      name: 'Platinum Package',
+      type: 'platinum',
+      price: 3500,
+      duration: 12,
+      durationLabel: '1 Year',
+      benefits: ['Logo on website', 'Social media mention', 'Newsletter inclusion', 'Banner at events', 'Jersey sponsorship', 'VIP event access'],
+      color: 'bg-purple-100 text-purple-800'
+    }
+  ]);
+
+  const [sponsors, setSponsors] = useState([
+    {
+      id: '1',
+      name: 'SportTech Solutions',
+      email: 'contact@sporttech.com',
+      logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=100&fit=crop',
+      contactEmail: 'contact@sporttech.com',
+      phone: '+30 123 456 7890',
+      packageId: '3',
+      packageType: 'gold',
+      amount: 2000.00,
+      startDate: '2024-01-01',
+      endDate: '2024-07-01',
+      status: 'active',
+      benefits: 'Logo on jerseys, stadium banner'
+    }
+  ]);
+
   // Products Management
   const [products, setProducts] = useState([
     {
@@ -174,21 +236,6 @@ export const AppProvider = ({ children }) => {
     }
   ]);
 
-  // Sponsors Management
-  const [sponsors, setSponsors] = useState([
-    {
-      id: '1',
-      name: 'SportTech Solutions',
-      logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=100&fit=crop',
-      contactEmail: 'contact@sporttech.com',
-      amount: 5000.00,
-      startDate: '2024-01-01',
-      endDate: '2024-12-31',
-      status: 'active',
-      benefits: 'Logo on jerseys, stadium banner'
-    }
-  ]);
-
   // Messages Management
   const [conversations, setConversations] = useState([
     {
@@ -239,10 +286,11 @@ export const AppProvider = ({ children }) => {
       students: localStorage.getItem('academy_students'),
       locations: localStorage.getItem('academy_locations'),
       productCategories: localStorage.getItem('academy_categories'),
+      sponsorPackages: localStorage.getItem('academy_sponsor_packages'),
+      sponsors: localStorage.getItem('academy_sponsors'),
       products: localStorage.getItem('academy_products'),
       events: localStorage.getItem('academy_events'),
       payments: localStorage.getItem('academy_payments'),
-      sponsors: localStorage.getItem('academy_sponsors'),
       conversations: localStorage.getItem('academy_conversations'),
       messages: localStorage.getItem('academy_messages'),
       cart: localStorage.getItem('academy_cart'),
@@ -258,10 +306,11 @@ export const AppProvider = ({ children }) => {
             case 'students': setStudents(parsed); break;
             case 'locations': setLocations(parsed); break;
             case 'productCategories': setProductCategories(parsed); break;
+            case 'sponsorPackages': setSponsorPackages(parsed); break;
+            case 'sponsors': setSponsors(parsed); break;
             case 'products': setProducts(parsed); break;
             case 'events': setEvents(parsed); break;
             case 'payments': setPayments(parsed); break;
-            case 'sponsors': setSponsors(parsed); break;
             case 'conversations': setConversations(parsed); break;
             case 'messages': setMessages(parsed); break;
             case 'cart': setCartItems(parsed); break;
@@ -275,53 +324,19 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   // Save to localStorage whenever data changes
-  useEffect(() => {
-    localStorage.setItem('academy_users', JSON.stringify(users));
-  }, [users]);
-
-  useEffect(() => {
-    localStorage.setItem('academy_students', JSON.stringify(students));
-  }, [students]);
-
-  useEffect(() => {
-    localStorage.setItem('academy_locations', JSON.stringify(locations));
-  }, [locations]);
-
-  useEffect(() => {
-    localStorage.setItem('academy_categories', JSON.stringify(productCategories));
-  }, [productCategories]);
-
-  useEffect(() => {
-    localStorage.setItem('academy_products', JSON.stringify(products));
-  }, [products]);
-
-  useEffect(() => {
-    localStorage.setItem('academy_events', JSON.stringify(events));
-  }, [events]);
-
-  useEffect(() => {
-    localStorage.setItem('academy_payments', JSON.stringify(payments));
-  }, [payments]);
-
-  useEffect(() => {
-    localStorage.setItem('academy_sponsors', JSON.stringify(sponsors));
-  }, [sponsors]);
-
-  useEffect(() => {
-    localStorage.setItem('academy_conversations', JSON.stringify(conversations));
-  }, [conversations]);
-
-  useEffect(() => {
-    localStorage.setItem('academy_messages', JSON.stringify(messages));
-  }, [messages]);
-
-  useEffect(() => {
-    localStorage.setItem('academy_cart', JSON.stringify(cartItems));
-  }, [cartItems]);
-
-  useEffect(() => {
-    localStorage.setItem('academy_notifications', JSON.stringify(notifications));
-  }, [notifications]);
+  useEffect(() => { localStorage.setItem('academy_users', JSON.stringify(users)); }, [users]);
+  useEffect(() => { localStorage.setItem('academy_students', JSON.stringify(students)); }, [students]);
+  useEffect(() => { localStorage.setItem('academy_locations', JSON.stringify(locations)); }, [locations]);
+  useEffect(() => { localStorage.setItem('academy_categories', JSON.stringify(productCategories)); }, [productCategories]);
+  useEffect(() => { localStorage.setItem('academy_sponsor_packages', JSON.stringify(sponsorPackages)); }, [sponsorPackages]);
+  useEffect(() => { localStorage.setItem('academy_sponsors', JSON.stringify(sponsors)); }, [sponsors]);
+  useEffect(() => { localStorage.setItem('academy_products', JSON.stringify(products)); }, [products]);
+  useEffect(() => { localStorage.setItem('academy_events', JSON.stringify(events)); }, [events]);
+  useEffect(() => { localStorage.setItem('academy_payments', JSON.stringify(payments)); }, [payments]);
+  useEffect(() => { localStorage.setItem('academy_conversations', JSON.stringify(conversations)); }, [conversations]);
+  useEffect(() => { localStorage.setItem('academy_messages', JSON.stringify(messages)); }, [messages]);
+  useEffect(() => { localStorage.setItem('academy_cart', JSON.stringify(cartItems)); }, [cartItems]);
+  useEffect(() => { localStorage.setItem('academy_notifications', JSON.stringify(notifications)); }, [notifications]);
 
   // File upload helper
   const handleFileUpload = (file) => {
@@ -352,26 +367,6 @@ export const AppProvider = ({ children }) => {
 
   const deleteUser = (userId) => {
     setUsers(prev => prev.filter(user => user.id !== userId));
-  };
-
-  // Students Management Functions
-  const addStudent = (studentData) => {
-    const newStudent = {
-      id: uuidv4(),
-      ...studentData
-    };
-    setStudents(prev => [...prev, newStudent]);
-    return newStudent;
-  };
-
-  const updateStudent = (studentId, updates) => {
-    setStudents(prev => prev.map(student => 
-      student.id === studentId ? { ...student, ...updates } : student
-    ));
-  };
-
-  const deleteStudent = (studentId) => {
-    setStudents(prev => prev.filter(student => student.id !== studentId));
   };
 
   // Location Management Functions
@@ -414,76 +409,32 @@ export const AppProvider = ({ children }) => {
     setProductCategories(prev => prev.filter(category => category.id !== categoryId));
   };
 
-  // Product Management Functions
-  const addProduct = (productData) => {
-    const newProduct = {
+  // Sponsor Package Management Functions
+  const addSponsorPackage = (packageData) => {
+    const newPackage = {
       id: uuidv4(),
-      ...productData,
-      sold: 0,
-      status: productData.stock > 10 ? 'in-stock' : productData.stock > 0 ? 'low-stock' : 'out-of-stock'
+      ...packageData
     };
-    setProducts(prev => [...prev, newProduct]);
-    return newProduct;
+    setSponsorPackages(prev => [...prev, newPackage]);
+    return newPackage;
   };
 
-  const updateProduct = (productId, updates) => {
-    setProducts(prev => prev.map(product => 
-      product.id === productId ? { ...product, ...updates } : product
+  const updateSponsorPackage = (packageId, updates) => {
+    setSponsorPackages(prev => prev.map(pkg => 
+      pkg.id === packageId ? { ...pkg, ...updates } : pkg
     ));
   };
 
-  const deleteProduct = (productId) => {
-    setProducts(prev => prev.filter(product => product.id !== productId));
-  };
-
-  // Event Management Functions
-  const addEvent = (eventData) => {
-    const newEvent = {
-      id: uuidv4(),
-      ...eventData,
-      participants: eventData.participants || []
-    };
-    setEvents(prev => [...prev, newEvent]);
-    return newEvent;
-  };
-
-  const updateEvent = (eventId, updates) => {
-    setEvents(prev => prev.map(event => 
-      event.id === eventId ? { ...event, ...updates } : event
-    ));
-  };
-
-  const deleteEvent = (eventId) => {
-    setEvents(prev => prev.filter(event => event.id !== eventId));
-  };
-
-  // Payment Management Functions
-  const addPayment = (paymentData) => {
-    const newPayment = {
-      id: uuidv4(),
-      ...paymentData,
-      date: new Date().toISOString().split('T')[0],
-      currency: 'EUR'
-    };
-    setPayments(prev => [...prev, newPayment]);
-    return newPayment;
-  };
-
-  const updatePayment = (paymentId, updates) => {
-    setPayments(prev => prev.map(payment => 
-      payment.id === paymentId ? { ...payment, ...updates } : payment
-    ));
-  };
-
-  const deletePayment = (paymentId) => {
-    setPayments(prev => prev.filter(payment => payment.id !== paymentId));
+  const deleteSponsorPackage = (packageId) => {
+    setSponsorPackages(prev => prev.filter(pkg => pkg.id !== packageId));
   };
 
   // Sponsor Management Functions
   const addSponsor = (sponsorData) => {
     const newSponsor = {
       id: uuidv4(),
-      ...sponsorData
+      ...sponsorData,
+      status: 'active'
     };
     setSponsors(prev => [...prev, newSponsor]);
     return newSponsor;
@@ -512,14 +463,11 @@ export const AppProvider = ({ children }) => {
       status: 'sent'
     };
     setMessages(prev => [...prev, newMessage]);
-    
+
     // Update conversation last message
     setConversations(prev => prev.map(conv => 
-      conv.id === conversationId 
-        ? { ...conv, lastMessage: content, time: 'now' }
-        : conv
+      conv.id === conversationId ? { ...conv, lastMessage: content, time: 'now' } : conv
     ));
-    
     return newMessage;
   };
 
@@ -539,15 +487,35 @@ export const AppProvider = ({ children }) => {
     return newConversation;
   };
 
+  // Product Management Functions
+  const addProduct = (productData) => {
+    const newProduct = {
+      id: uuidv4(),
+      ...productData,
+      sold: 0,
+      status: productData.stock > 10 ? 'in-stock' : productData.stock > 0 ? 'low-stock' : 'out-of-stock'
+    };
+    setProducts(prev => [...prev, newProduct]);
+    return newProduct;
+  };
+
+  const updateProduct = (productId, updates) => {
+    setProducts(prev => prev.map(product => 
+      product.id === productId ? { ...product, ...updates } : product
+    ));
+  };
+
+  const deleteProduct = (productId) => {
+    setProducts(prev => prev.filter(product => product.id !== productId));
+  };
+
   // Cart Management Functions
   const addToCart = (product, quantity = 1) => {
     setCartItems(prev => {
       const existingItem = prev.find(item => item.id === product.id);
       if (existingItem) {
         return prev.map(item => 
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
+          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       } else {
         return [...prev, { ...product, quantity }];
@@ -571,6 +539,49 @@ export const AppProvider = ({ children }) => {
 
   const clearCart = () => {
     setCartItems([]);
+  };
+
+  // Event Management Functions
+  const addEvent = (eventData) => {
+    const newEvent = {
+      id: uuidv4(),
+      ...eventData,
+      participants: eventData.participants || []
+    };
+    setEvents(prev => [...prev, newEvent]);
+    return newEvent;
+  };
+
+  const updateEvent = (eventId, updates) => {
+    setEvents(prev => prev.map(event => 
+      event.id === eventId ? { ...event, ...updates } : event
+    ));
+  };
+
+  const deleteEvent = (eventId) => {
+    setEvents(prev => prev.filter(event => event.id !== eventId));
+  };
+
+  // Payment Management Functions  
+  const addPayment = (paymentData) => {
+    const newPayment = {
+      id: uuidv4(),
+      ...paymentData,
+      date: new Date().toISOString().split('T')[0],
+      currency: 'EUR'
+    };
+    setPayments(prev => [...prev, newPayment]);
+    return newPayment;
+  };
+
+  const updatePayment = (paymentId, updates) => {
+    setPayments(prev => prev.map(payment => 
+      payment.id === paymentId ? { ...payment, ...updates } : payment
+    ));
+  };
+
+  const deletePayment = (paymentId) => {
+    setPayments(prev => prev.filter(payment => payment.id !== paymentId));
   };
 
   // Notification Management
@@ -607,6 +618,10 @@ export const AppProvider = ({ children }) => {
     return productCategories.find(category => category.id === categoryId);
   };
 
+  const getSponsorPackageById = (packageId) => {
+    return sponsorPackages.find(pkg => pkg.id === packageId);
+  };
+
   const getStudentsByParentId = (parentId) => {
     return students.filter(student => student.parentId === parentId);
   };
@@ -617,74 +632,78 @@ export const AppProvider = ({ children }) => {
     students,
     locations,
     productCategories,
+    sponsorPackages,
+    sponsors,
     products,
     events,
     payments,
-    sponsors,
     conversations,
     messages,
     cartItems,
     notifications,
     unreadNotificationsCount,
-    
+
     // User Management
     addUser,
     updateUser,
     deleteUser,
-    
+
     // Students Management
-    addStudent,
-    updateStudent,
-    deleteStudent,
     getStudentsByParentId,
-    
+
     // Location Management
     addLocation,
     updateLocation,
     deleteLocation,
     getLocationById,
-    
+
     // Product Category Management
     addProductCategory,
     updateProductCategory,
     deleteProductCategory,
     getCategoryById,
-    
-    // Product Management
-    addProduct,
-    updateProduct,
-    deleteProduct,
-    
-    // Event Management
-    addEvent,
-    updateEvent,
-    deleteEvent,
-    
-    // Payment Management
-    addPayment,
-    updatePayment,
-    deletePayment,
-    
+
+    // Sponsor Package Management
+    addSponsorPackage,
+    updateSponsorPackage,
+    deleteSponsorPackage,
+    getSponsorPackageById,
+
     // Sponsor Management
     addSponsor,
     updateSponsor,
     deleteSponsor,
-    
+
+    // Product Management
+    addProduct,
+    updateProduct,
+    deleteProduct,
+
+    // Event Management
+    addEvent,
+    updateEvent,
+    deleteEvent,
+
+    // Payment Management
+    addPayment,
+    updatePayment,
+    deletePayment,
+
     // Message Management
     sendMessage,
     createConversation,
-    
+
     // Cart Management
     addToCart,
     removeFromCart,
     updateCartItem,
     clearCart,
-    
+
     // Notification Management
     addNotification,
     markNotificationRead,
     markAllNotificationsRead,
-    
+
     // File handling
     handleFileUpload
   };

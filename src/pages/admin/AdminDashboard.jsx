@@ -7,7 +7,7 @@ import Dashboard from '../Dashboard/Dashboard';
 import { useApp } from '../../contexts/AppContext';
 import { toast } from 'react-toastify';
 
-const { FiUsers, FiBarChart3, FiPackage, FiDollarSign, FiMegaphone, FiSettings, FiHome, FiPlus, FiEdit2, FiTrash2, FiMapPin, FiTag } = FiIcons;
+const { FiUsers, FiBarChart3, FiPackage, FiDollarSign, FiMegaphone, FiSettings, FiHome, FiPlus, FiEdit2, FiTrash2, FiMapPin, FiTag, FiX } = FiIcons;
 
 // Users Management Component
 const UsersManagement = () => {
@@ -22,30 +22,48 @@ const UsersManagement = () => {
     address: ''
   });
 
+  const resetForm = () => {
+    setFormData({ name: '', email: '', role: 'player', phone: '', address: '' });
+    setEditingUser(null);
+    setShowAddModal(false);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingUser) {
-      updateUser(editingUser.id, formData);
-      toast.success('User updated successfully!');
-    } else {
-      addUser(formData);
-      toast.success('User added successfully!');
+    try {
+      if (editingUser) {
+        updateUser(editingUser.id, formData);
+        toast.success('User updated successfully!');
+      } else {
+        addUser(formData);
+        toast.success('User added successfully!');
+      }
+      resetForm();
+    } catch (error) {
+      toast.error('Error saving user');
     }
-    setShowAddModal(false);
-    setEditingUser(null);
-    setFormData({ name: '', email: '', role: 'player', phone: '', address: '' });
   };
 
   const handleEdit = (user) => {
     setEditingUser(user);
-    setFormData(user);
+    setFormData({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone || '',
+      address: user.address || ''
+    });
     setShowAddModal(true);
   };
 
   const handleDelete = (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      deleteUser(userId);
-      toast.success('User deleted successfully!');
+      try {
+        deleteUser(userId);
+        toast.success('User deleted successfully!');
+      } catch (error) {
+        toast.error('Error deleting user');
+      }
     }
   };
 
@@ -114,70 +132,73 @@ const UsersManagement = () => {
       {showAddModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowAddModal(false)} />
+            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={resetForm} />
             <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h3 className="text-lg font-semibold">
                   {editingUser ? 'Edit User' : 'Add New User'}
                 </h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                  <select
-                    value={formData.role}
-                    onChange={(e) => setFormData({...formData, role: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="player">Player</option>
-                    <option value="parent">Parent</option>
-                    <option value="coach">Coach</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                  <input
-                    type="tel"
-                    placeholder="Phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  />
-                  <div className="flex space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddModal(false)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg"
-                    >
-                      {editingUser ? 'Update' : 'Add'} User
-                    </button>
-                  </div>
-                </form>
+                <button onClick={resetForm} className="text-gray-400 hover:text-gray-600">
+                  <SafeIcon icon={FiX} className="h-6 w-6" />
+                </button>
               </div>
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="player">Player</option>
+                  <option value="parent">Parent</option>
+                  <option value="coach">Coach</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <input
+                  type="tel"
+                  placeholder="Phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+                <input
+                  type="text"
+                  placeholder="Address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg"
+                  >
+                    {editingUser ? 'Update' : 'Add'} User
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -194,23 +215,50 @@ const LocationsManagement = () => {
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    googleMapsLink: '',
-    capacity: '',
-    type: 'field'
+    googleMapsLink: ''
   });
+
+  const resetForm = () => {
+    setFormData({ name: '', address: '', googleMapsLink: '' });
+    setEditingLocation(null);
+    setShowAddModal(false);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingLocation) {
-      updateLocation(editingLocation.id, { ...formData, capacity: parseInt(formData.capacity) });
-      toast.success('Location updated successfully!');
-    } else {
-      addLocation({ ...formData, capacity: parseInt(formData.capacity) });
-      toast.success('Location added successfully!');
+    try {
+      if (editingLocation) {
+        updateLocation(editingLocation.id, formData);
+        toast.success('Location updated successfully!');
+      } else {
+        addLocation(formData);
+        toast.success('Location added successfully!');
+      }
+      resetForm();
+    } catch (error) {
+      toast.error('Error saving location');
     }
-    setShowAddModal(false);
-    setEditingLocation(null);
-    setFormData({ name: '', address: '', googleMapsLink: '', capacity: '', type: 'field' });
+  };
+
+  const handleEdit = (location) => {
+    setEditingLocation(location);
+    setFormData({
+      name: location.name,
+      address: location.address,
+      googleMapsLink: location.googleMapsLink || ''
+    });
+    setShowAddModal(true);
+  };
+
+  const handleDelete = (locationId) => {
+    if (window.confirm('Delete this location?')) {
+      try {
+        deleteLocation(locationId);
+        toast.success('Location deleted!');
+      } catch (error) {
+        toast.error('Error deleting location');
+      }
+    }
   };
 
   return (
@@ -233,33 +281,30 @@ const LocationsManagement = () => {
               <h3 className="font-semibold text-gray-900">{location.name}</h3>
               <div className="flex space-x-1">
                 <button
-                  onClick={() => {
-                    setEditingLocation(location);
-                    setFormData(location);
-                    setShowAddModal(true);
-                  }}
+                  onClick={() => handleEdit(location)}
                   className="text-blue-600 hover:text-blue-700"
                 >
                   <SafeIcon icon={FiEdit2} className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => {
-                    if (window.confirm('Delete this location?')) {
-                      deleteLocation(location.id);
-                      toast.success('Location deleted!');
-                    }
-                  }}
+                  onClick={() => handleDelete(location.id)}
                   className="text-red-600 hover:text-red-700"
                 >
                   <SafeIcon icon={FiTrash2} className="h-4 w-4" />
                 </button>
               </div>
             </div>
-            <p className="text-sm text-gray-600 mb-1">{location.address}</p>
-            <p className="text-sm text-gray-600">Capacity: {location.capacity}</p>
-            <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-              {location.type}
-            </span>
+            <p className="text-sm text-gray-600 mb-2">{location.address}</p>
+            {location.googleMapsLink && (
+              <a
+                href={location.googleMapsLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 hover:text-blue-700"
+              >
+                View on Google Maps
+              </a>
+            )}
           </div>
         ))}
       </div>
@@ -268,70 +313,56 @@ const LocationsManagement = () => {
       {showAddModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowAddModal(false)} />
+            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={resetForm} />
             <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h3 className="text-lg font-semibold">
                   {editingLocation ? 'Edit Location' : 'Add New Location'}
                 </h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Location Name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                  <input
-                    type="url"
-                    placeholder="Google Maps Link"
-                    value={formData.googleMapsLink}
-                    onChange={(e) => setFormData({...formData, googleMapsLink: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Capacity"
-                    value={formData.capacity}
-                    onChange={(e) => setFormData({...formData, capacity: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                  <select
-                    value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="field">Field</option>
-                    <option value="stadium">Stadium</option>
-                    <option value="indoor">Indoor</option>
-                  </select>
-                  <div className="flex space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddModal(false)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg"
-                    >
-                      {editingLocation ? 'Update' : 'Add'} Location
-                    </button>
-                  </div>
-                </form>
+                <button onClick={resetForm} className="text-gray-400 hover:text-gray-600">
+                  <SafeIcon icon={FiX} className="h-6 w-6" />
+                </button>
               </div>
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <input
+                  type="text"
+                  placeholder="Location Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+                <input
+                  type="url"
+                  placeholder="Google Maps Link (optional)"
+                  value={formData.googleMapsLink}
+                  onChange={(e) => setFormData({...formData, googleMapsLink: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg"
+                  >
+                    {editingLocation ? 'Update' : 'Add'} Location
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -350,18 +381,46 @@ const CategoriesManagement = () => {
     description: ''
   });
 
+  const resetForm = () => {
+    setFormData({ name: '', description: '' });
+    setEditingCategory(null);
+    setShowAddModal(false);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingCategory) {
-      updateProductCategory(editingCategory.id, formData);
-      toast.success('Category updated successfully!');
-    } else {
-      addProductCategory(formData);
-      toast.success('Category added successfully!');
+    try {
+      if (editingCategory) {
+        updateProductCategory(editingCategory.id, formData);
+        toast.success('Category updated successfully!');
+      } else {
+        addProductCategory(formData);
+        toast.success('Category added successfully!');
+      }
+      resetForm();
+    } catch (error) {
+      toast.error('Error saving category');
     }
-    setShowAddModal(false);
-    setEditingCategory(null);
-    setFormData({ name: '', description: '' });
+  };
+
+  const handleEdit = (category) => {
+    setEditingCategory(category);
+    setFormData({
+      name: category.name,
+      description: category.description
+    });
+    setShowAddModal(true);
+  };
+
+  const handleDelete = (categoryId) => {
+    if (window.confirm('Delete this category?')) {
+      try {
+        deleteProductCategory(categoryId);
+        toast.success('Category deleted!');
+      } catch (error) {
+        toast.error('Error deleting category');
+      }
+    }
   };
 
   return (
@@ -384,22 +443,13 @@ const CategoriesManagement = () => {
               <h3 className="font-semibold text-gray-900">{category.name}</h3>
               <div className="flex space-x-1">
                 <button
-                  onClick={() => {
-                    setEditingCategory(category);
-                    setFormData(category);
-                    setShowAddModal(true);
-                  }}
+                  onClick={() => handleEdit(category)}
                   className="text-blue-600 hover:text-blue-700"
                 >
                   <SafeIcon icon={FiEdit2} className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => {
-                    if (window.confirm('Delete this category?')) {
-                      deleteProductCategory(category.id);
-                      toast.success('Category deleted!');
-                    }
-                  }}
+                  onClick={() => handleDelete(category.id)}
                   className="text-red-600 hover:text-red-700"
                 >
                   <SafeIcon icon={FiTrash2} className="h-4 w-4" />
@@ -415,45 +465,48 @@ const CategoriesManagement = () => {
       {showAddModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowAddModal(false)} />
+            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={resetForm} />
             <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h3 className="text-lg font-semibold">
                   {editingCategory ? 'Edit Category' : 'Add New Category'}
                 </h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Category Name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                  <textarea
-                    placeholder="Description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    rows={3}
-                  />
-                  <div className="flex space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddModal(false)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg"
-                    >
-                      {editingCategory ? 'Update' : 'Add'} Category
-                    </button>
-                  </div>
-                </form>
+                <button onClick={resetForm} className="text-gray-400 hover:text-gray-600">
+                  <SafeIcon icon={FiX} className="h-6 w-6" />
+                </button>
               </div>
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <input
+                  type="text"
+                  placeholder="Category Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+                <textarea
+                  placeholder="Description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  rows={3}
+                />
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg"
+                  >
+                    {editingCategory ? 'Update' : 'Add'} Category
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -464,32 +517,80 @@ const CategoriesManagement = () => {
 
 // Sponsors Management Component
 const SponsorsManagement = () => {
-  const { sponsors, addSponsor, updateSponsor, deleteSponsor } = useApp();
+  const { sponsors, sponsorPackages, addSponsor, updateSponsor, deleteSponsor, getSponsorPackageById } = useApp();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
+    phone: '',
     logo: '',
-    contactEmail: '',
-    amount: '',
+    packageId: '',
     startDate: '',
-    endDate: '',
-    status: 'active',
-    benefits: ''
+    endDate: ''
   });
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      logo: '',
+      packageId: '',
+      startDate: '',
+      endDate: ''
+    });
+    setEditingSponsor(null);
+    setShowAddModal(false);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingSponsor) {
-      updateSponsor(editingSponsor.id, { ...formData, amount: parseFloat(formData.amount) });
-      toast.success('Sponsor updated successfully!');
-    } else {
-      addSponsor({ ...formData, amount: parseFloat(formData.amount) });
-      toast.success('Sponsor added successfully!');
+    try {
+      const selectedPackage = getSponsorPackageById(formData.packageId);
+      const sponsorData = {
+        ...formData,
+        packageType: selectedPackage?.type,
+        amount: selectedPackage?.price,
+        contactEmail: formData.email
+      };
+
+      if (editingSponsor) {
+        updateSponsor(editingSponsor.id, sponsorData);
+        toast.success('Sponsor updated successfully!');
+      } else {
+        addSponsor(sponsorData);
+        toast.success('Sponsor added successfully!');
+      }
+      resetForm();
+    } catch (error) {
+      toast.error('Error saving sponsor');
     }
-    setShowAddModal(false);
-    setEditingSponsor(null);
-    setFormData({ name: '', logo: '', contactEmail: '', amount: '', startDate: '', endDate: '', status: 'active', benefits: '' });
+  };
+
+  const handleEdit = (sponsor) => {
+    setEditingSponsor(sponsor);
+    setFormData({
+      name: sponsor.name,
+      email: sponsor.email || sponsor.contactEmail,
+      phone: sponsor.phone || '',
+      logo: sponsor.logo || '',
+      packageId: sponsor.packageId || '',
+      startDate: sponsor.startDate,
+      endDate: sponsor.endDate
+    });
+    setShowAddModal(true);
+  };
+
+  const handleDelete = (sponsorId) => {
+    if (window.confirm('Delete this sponsor?')) {
+      try {
+        deleteSponsor(sponsorId);
+        toast.success('Sponsor deleted!');
+      } catch (error) {
+        toast.error('Error deleting sponsor');
+      }
+    }
   };
 
   return (
@@ -506,146 +607,144 @@ const SponsorsManagement = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {sponsors.map((sponsor) => (
-          <div key={sponsor.id} className="border border-gray-200 rounded-lg p-4">
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex items-center space-x-3">
-                {sponsor.logo && (
-                  <img src={sponsor.logo} alt={sponsor.name} className="w-10 h-10 object-cover rounded" />
-                )}
-                <div>
-                  <h3 className="font-semibold text-gray-900">{sponsor.name}</h3>
-                  <p className="text-sm text-gray-600">{sponsor.contactEmail}</p>
+        {sponsors.map((sponsor) => {
+          const packageInfo = getSponsorPackageById(sponsor.packageId);
+          return (
+            <div key={sponsor.id} className="border border-gray-200 rounded-lg p-4">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center space-x-3">
+                  {sponsor.logo && (
+                    <img src={sponsor.logo} alt={sponsor.name} className="w-10 h-10 object-cover rounded" />
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{sponsor.name}</h3>
+                    <p className="text-sm text-gray-600">{sponsor.email || sponsor.contactEmail}</p>
+                  </div>
+                </div>
+                <div className="flex space-x-1">
+                  <button
+                    onClick={() => handleEdit(sponsor)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <SafeIcon icon={FiEdit2} className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(sponsor.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <SafeIcon icon={FiTrash2} className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
-              <div className="flex space-x-1">
-                <button
-                  onClick={() => {
-                    setEditingSponsor(sponsor);
-                    setFormData(sponsor);
-                    setShowAddModal(true);
-                  }}
-                  className="text-blue-600 hover:text-blue-700"
-                >
-                  <SafeIcon icon={FiEdit2} className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    if (window.confirm('Delete this sponsor?')) {
-                      deleteSponsor(sponsor.id);
-                      toast.success('Sponsor deleted!');
-                    }
-                  }}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <SafeIcon icon={FiTrash2} className="h-4 w-4" />
-                </button>
-              </div>
+              {packageInfo && (
+                <span className={`inline-block px-2 py-1 text-xs rounded-full mb-2 ${packageInfo.color}`}>
+                  {packageInfo.name}
+                </span>
+              )}
+              <p className="text-lg font-bold text-green-600">€{sponsor.amount?.toLocaleString()}</p>
+              <p className="text-sm text-gray-600">{sponsor.startDate} - {sponsor.endDate}</p>
+              <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${
+                sponsor.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+              }`}>
+                {sponsor.status}
+              </span>
             </div>
-            <p className="text-lg font-bold text-green-600">€{sponsor.amount?.toLocaleString()}</p>
-            <p className="text-sm text-gray-600">{sponsor.startDate} - {sponsor.endDate}</p>
-            <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${
-              sponsor.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-            }`}>
-              {sponsor.status}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Add/Edit Sponsor Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowAddModal(false)} />
+            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={resetForm} />
             <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h3 className="text-lg font-semibold">
                   {editingSponsor ? 'Edit Sponsor' : 'Add New Sponsor'}
                 </h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Sponsor Name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                  <input
-                    type="url"
-                    placeholder="Logo URL"
-                    value={formData.logo}
-                    onChange={(e) => setFormData({...formData, logo: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Contact Email"
-                    value={formData.contactEmail}
-                    onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                  <input
-                    type="number"
-                    placeholder="Sponsorship Amount (€)"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <input
-                      type="date"
-                      placeholder="Start Date"
-                      value={formData.startDate}
-                      onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      required
-                    />
-                    <input
-                      type="date"
-                      placeholder="End Date"
-                      value={formData.endDate}
-                      onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      required
-                    />
-                  </div>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({...formData, status: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="active">Active</option>
-                    <option value="pending">Pending</option>
-                    <option value="expired">Expired</option>
-                  </select>
-                  <textarea
-                    placeholder="Benefits/Description"
-                    value={formData.benefits}
-                    onChange={(e) => setFormData({...formData, benefits: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    rows={3}
-                  />
-                  <div className="flex space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddModal(false)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg"
-                    >
-                      {editingSponsor ? 'Update' : 'Add'} Sponsor
-                    </button>
-                  </div>
-                </form>
+                <button onClick={resetForm} className="text-gray-400 hover:text-gray-600">
+                  <SafeIcon icon={FiX} className="h-6 w-6" />
+                </button>
               </div>
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <input
+                  type="text"
+                  placeholder="Company Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+                <input
+                  type="email"
+                  placeholder="Contact Email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+                <input
+                  type="tel"
+                  placeholder="Phone Number"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+                <input
+                  type="url"
+                  placeholder="Logo URL (optional)"
+                  value={formData.logo}
+                  onChange={(e) => setFormData({...formData, logo: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+                <select
+                  value={formData.packageId}
+                  onChange={(e) => setFormData({...formData, packageId: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                >
+                  <option value="">Select Package</option>
+                  {sponsorPackages.map(pkg => (
+                    <option key={pkg.id} value={pkg.id}>
+                      {pkg.name} - €{pkg.price} ({pkg.durationLabel})
+                    </option>
+                  ))}
+                </select>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="date"
+                    placeholder="Start Date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    required
+                  />
+                  <input
+                    type="date"
+                    placeholder="End Date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    required
+                  />
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg"
+                  >
+                    {editingSponsor ? 'Update' : 'Add'} Sponsor
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
