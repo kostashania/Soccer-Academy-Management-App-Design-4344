@@ -45,14 +45,6 @@ const LoginPage = () => {
     });
   };
 
-  const demoAccounts = [
-    { email: 'admin@academy.com', role: 'Admin', password: 'password123' },
-    { email: 'manager@academy.com', role: 'Manager', password: 'password123' },
-    { email: 'coach@academy.com', role: 'Coach', password: 'password123' },
-    { email: 'parent@academy.com', role: 'Parent', password: 'password123' },
-    { email: 'player@academy.com', role: 'Player', password: 'password123' }
-  ];
-
   return (
     <div className="min-h-screen flex">
       {/* Left side - Hero Image */}
@@ -168,24 +160,21 @@ const LoginPage = () => {
             </button>
           </form>
 
-          {/* Demo Accounts */}
+          {/* Create Account Link */}
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Demo Accounts (Supabase):</h3>
-            <div className="grid grid-cols-1 gap-2">
-              {demoAccounts.map((account) => (
-                <button
-                  key={account.email}
-                  onClick={() => setFormData({ email: account.email, password: account.password })}
-                  className="text-left p-3 text-xs bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <div className="font-medium text-gray-900">{account.role}</div>
-                  <div className="text-gray-500 truncate">{account.email}</div>
-                  <div className="text-gray-400">Password: {account.password}</div>
-                </button>
-              ))}
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-4">
+                Need to create demo accounts for testing?
+              </p>
+              <a
+                href="#/signup"
+                className="inline-flex items-center px-4 py-2 border border-primary-600 text-sm font-medium rounded-lg text-primary-600 bg-white hover:bg-primary-50 transition-colors"
+              >
+                Create Demo Accounts
+              </a>
             </div>
-            <p className="text-xs text-gray-500 mt-3">
-              Click any demo account to auto-fill credentials. Each role has different permissions.
+            <p className="text-xs text-gray-500 mt-4 text-center">
+              Create accounts for different roles (Admin, Coach, Parent, etc.) to test the system.
             </p>
           </div>
         </motion.div>

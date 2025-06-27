@@ -11,6 +11,7 @@ import { AppProvider } from './contexts/AppContext';
 // Components
 import Layout from './components/Layout/Layout';
 import LoginPage from './pages/auth/LoginPage';
+import SignupPage from './pages/auth/SignupPage';
 import Dashboard from './pages/Dashboard/Dashboard';
 
 // Pages by Role
@@ -70,7 +71,8 @@ function App() {
               <Routes>
                 {/* Public Routes */}
                 <Route path="/login" element={<LoginPage />} />
-                
+                <Route path="/signup" element={<SignupPage />} />
+
                 {/* Protected Routes */}
                 <Route
                   path="/*"
@@ -86,7 +88,7 @@ function App() {
                           <Route path="/cart" element={<Cart />} />
                           <Route path="/messages" element={<Messages />} />
                           <Route path="/profile" element={<Profile />} />
-                          
+
                           {/* Admin Only Routes */}
                           <Route
                             path="/admin/*"
@@ -102,7 +104,7 @@ function App() {
                   }
                 />
               </Routes>
-              
+
               <ToastContainer
                 position="top-right"
                 autoClose={5000}
