@@ -19,6 +19,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import CoachDashboard from './pages/coach/CoachDashboard';
 import ParentDashboard from './pages/parent/ParentDashboard';
 import PlayerDashboard from './pages/player/PlayerDashboard';
+import SponsorDashboard from './pages/sponsor/SponsorDashboard';
 
 // Shared Pages
 import Calendar from './pages/Calendar/Calendar';
@@ -56,6 +57,8 @@ const DashboardRouter = () => {
       return <ParentDashboard />;
     case 'player':
       return <PlayerDashboard />;
+    case 'sponsor':
+      return <SponsorDashboard />;
     default:
       return <Dashboard />;
   }
@@ -83,10 +86,10 @@ function App() {
                           <Route path="/" element={<Navigate to="/dashboard" replace />} />
                           <Route path="/dashboard" element={<DashboardRouter />} />
                           <Route path="/calendar" element={<Calendar />} />
-                          <Route path="/payments" element={<Payments />} />
+                          <Route path="/payments" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'parent']}><Payments /></ProtectedRoute>} />
                           <Route path="/store" element={<Store />} />
                           <Route path="/cart" element={<Cart />} />
-                          <Route path="/messages" element={<Messages />} />
+                          <Route path="/messages" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'coach', 'parent', 'player']}><Messages /></ProtectedRoute>} />
                           <Route path="/profile" element={<Profile />} />
 
                           {/* Admin Only Routes */}

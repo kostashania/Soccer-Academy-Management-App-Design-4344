@@ -7,10 +7,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useApp } from '../../contexts/AppContext';
 
-const { 
-  FiHome, FiCalendar, FiCreditCard, FiShoppingBag, FiMessageSquare, 
-  FiUser, FiSettings, FiUsers, FiBarChart3, FiPackage, FiDollarSign, 
-  FiMegaphone, FiShoppingCart, FiMapPin, FiTag
+const {
+  FiHome, FiCalendar, FiCreditCard, FiShoppingBag, FiMessageSquare, FiUser, FiSettings,
+  FiUsers, FiBarChart3, FiPackage, FiDollarSign, FiMegaphone, FiShoppingCart, FiMapPin, FiTag,
+  FiBriefcase, FiTrendingUp, FiImage
 } = FiIcons;
 
 const Sidebar = ({ mobile, onClose }) => {
@@ -23,11 +23,18 @@ const Sidebar = ({ mobile, onClose }) => {
     const baseItems = [
       { name: t('dashboard'), href: '/dashboard', icon: FiHome },
       { name: t('calendar'), href: '/calendar', icon: FiCalendar },
-      { name: t('payments'), href: '/payments', icon: FiCreditCard },
       { name: t('store'), href: '/store', icon: FiShoppingBag },
-      { name: 'My Cart', href: '/cart', icon: FiShoppingCart, badge: cartItems.length },
-      { name: t('messages'), href: '/messages', icon: FiMessageSquare },
+      { name: 'My Cart', href: '/cart', icon: FiShoppingCart, badge: cartItems.length }
     ];
+
+    // Add role-specific items
+    if (['admin', 'manager', 'parent'].includes(user?.role)) {
+      baseItems.splice(2, 0, { name: t('payments'), href: '/payments', icon: FiCreditCard });
+    }
+
+    if (['admin', 'manager', 'coach', 'parent', 'player'].includes(user?.role)) {
+      baseItems.push({ name: t('messages'), href: '/messages', icon: FiMessageSquare });
+    }
 
     const roleSpecificItems = {
       admin: [
@@ -38,25 +45,30 @@ const Sidebar = ({ mobile, onClose }) => {
         { name: 'Categories', href: '/admin/categories', icon: FiTag },
         { name: 'Finance', href: '/admin/finance', icon: FiDollarSign },
         { name: 'Sponsors', href: '/admin/sponsors', icon: FiMegaphone },
-        { name: 'Settings', href: '/admin/settings', icon: FiSettings },
+        { name: 'Settings', href: '/admin/settings', icon: FiSettings }
       ],
       coach: [
         { name: 'My Teams', href: '/coach/teams', icon: FiUsers },
-        { name: 'Training', href: '/coach/training', icon: FiCalendar },
+        { name: 'Training', href: '/coach/training', icon: FiCalendar }
       ],
       manager: [
         { name: 'Staff', href: '/manager/staff', icon: FiUsers },
-        { name: 'Reports', href: '/manager/reports', icon: FiBarChart3 },
+        { name: 'Reports', href: '/manager/reports', icon: FiBarChart3 }
       ],
       parent: [
-        { name: 'My Children', href: '/parent/children', icon: FiUsers },
+        { name: 'My Children', href: '/parent/children', icon: FiUsers }
+      ],
+      sponsor: [
+        { name: 'My Ads', href: '/sponsor/ads', icon: FiImage },
+        { name: 'Analytics', href: '/sponsor/analytics', icon: FiTrendingUp },
+        { name: 'Company Info', href: '/sponsor/company', icon: FiBriefcase }
       ]
     };
 
     return [
       ...baseItems,
       ...(roleSpecificItems[user?.role] || []),
-      { name: t('profile'), href: '/profile', icon: FiUser },
+      { name: t('profile'), href: '/profile', icon: FiUser }
     ];
   };
 
@@ -127,11 +139,13 @@ const Sidebar = ({ mobile, onClose }) => {
         <div className="flex items-center">
           <img
             className="h-10 w-10 rounded-full object-cover"
-            src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
+            src={user?.avatar || user?.logo || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}
             alt={user?.name}
           />
           <div className="ml-3">
-            <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+            <p className="text-sm font-medium text-gray-900">
+              {user?.company_name || user?.name}
+            </p>
             <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
           </div>
         </div>

@@ -1,9 +1,8 @@
 import { supabase } from '../lib/supabase'
 
-// ========================================
+//========================================
 // 🔐 AUTH & USER MANAGEMENT
-// ========================================
-
+//========================================
 export const authService = {
   // Sign up new user
   async signUp(email, password, userData) {
@@ -23,16 +22,27 @@ export const authService = {
 
       // Create user profile
       if (authData.user) {
+        const profileData = {
+          auth_user_id: authData.user.id,
+          full_name: userData.full_name,
+          email: email,
+          role: userData.role || 'player',
+          phone_number: userData.phone_number,
+          address: userData.address,
+          language_preference: userData.language_preference || 'en'
+        };
+
+        // Add sponsor-specific fields
+        if (userData.role === 'sponsor') {
+          profileData.company_name = userData.company_name;
+          profileData.website_url = userData.website_url;
+          profileData.package_type = userData.package_type;
+          profileData.status = 'active';
+        }
+
         const { error: profileError } = await supabase
           .from('user_profiles_sa2025')
-          .insert({
-            auth_user_id: authData.user.id,
-            full_name: userData.full_name,
-            email: email,
-            role: userData.role || 'player',
-            phone_number: userData.phone_number,
-            address: userData.address
-          })
+          .insert(profileData)
 
         if (profileError) throw profileError
       }
@@ -60,13 +70,7 @@ export const authService = {
         .eq('auth_user_id', data.user.id)
         .single()
 
-      return { 
-        data: { 
-          ...data, 
-          profile 
-        }, 
-        error: null 
-      }
+      return { data: { ...data, profile }, error: null }
     } catch (error) {
       return { data: null, error }
     }
@@ -92,10 +96,9 @@ export const authService = {
   }
 }
 
-// ========================================
+//========================================
 // 👥 USER PROFILES MANAGEMENT
-// ========================================
-
+//========================================
 export const userService = {
   // Get all users (with role-based filtering)
   async getUsers() {
@@ -150,10 +153,9 @@ export const userService = {
   }
 }
 
-// ========================================
+//========================================
 // 💰 PAYMENTS MANAGEMENT
-// ========================================
-
+//========================================
 export const paymentService = {
   // Get payments (role-filtered)
   async getPayments() {
@@ -200,10 +202,9 @@ export const paymentService = {
   }
 }
 
-// ========================================
+//========================================
 // 🛒 STORE & PRODUCTS
-// ========================================
-
+//========================================
 export const storeService = {
   // Get products
   async getProducts() {
@@ -269,9 +270,7 @@ export const storeService = {
         user_id: userId,
         product_id: productId,
         quantity
-      }, {
-        onConflict: 'user_id,product_id'
-      })
+      }, { onConflict: 'user_id,product_id' })
       .select()
       .single()
   },
@@ -284,7 +283,7 @@ export const storeService = {
         .eq('user_id', userId)
         .eq('product_id', productId)
     }
-    
+
     return await supabase
       .from('cart_items_sa2025')
       .update({ quantity })
@@ -300,10 +299,9 @@ export const storeService = {
   }
 }
 
-// ========================================
+//========================================
 // 📅 EVENTS & SCHEDULING
-// ========================================
-
+//========================================
 export const eventService = {
   // Get events (role-filtered)
   async getEvents() {
@@ -357,10 +355,9 @@ export const eventService = {
   }
 }
 
-// ========================================
+//========================================
 // 💬 MESSAGING SYSTEM
-// ========================================
-
+//========================================
 export const messageService = {
   // Get conversations for user
   async getConversations(userId) {
@@ -436,55 +433,80 @@ export const messageService = {
   }
 }
 
-// ========================================
+//========================================
 // 📢 SPONSORS & MARKETING
-// ========================================
-
+//========================================
 export const sponsorService = {
   // Get sponsors
   async getSponsors() {
     return await supabase
-      .from('sponsors_sa2025')
-      .select(`
-        *,
-        package:sponsor_packages_sa2025(*)
-      `)
+      .from('user_profiles_sa2025')
+      .select('*')
+      .eq('role', 'sponsor')
       .order('created_at', { ascending: false })
   },
 
-  // Get sponsor packages
-  async getSponsorPackages() {
-    return await supabase
-      .from('sponsor_packages_sa2025')
-      .select('*')
-      .eq('active_status', true)
-      .order('price')
+  // Get sponsor ads
+  async getSponsorAds(sponsorId = null) {
+    let query = supabase
+      .from('sponsor_ads_sa2025')
+      .select(`
+        *,
+        sponsor:user_profiles_sa2025(*)
+      `)
+
+    if (sponsorId) {
+      query = query.eq('sponsor_id', sponsorId)
+    }
+
+    return await query.order('created_at', { ascending: false })
   },
 
-  // Create sponsor
-  async createSponsor(sponsorData) {
+  // Create sponsor ad
+  async createSponsorAd(adData) {
     return await supabase
-      .from('sponsors_sa2025')
-      .insert(sponsorData)
+      .from('sponsor_ads_sa2025')
+      .insert(adData)
       .select()
       .single()
   },
 
-  // Update sponsor
-  async updateSponsor(id, updates) {
+  // Update sponsor ad
+  async updateSponsorAd(id, updates) {
     return await supabase
-      .from('sponsors_sa2025')
+      .from('sponsor_ads_sa2025')
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single()
+  },
+
+  // Delete sponsor ad
+  async deleteSponsorAd(id) {
+    return await supabase
+      .from('sponsor_ads_sa2025')
+      .delete()
+      .eq('id', id)
+  },
+
+  // Get sponsor analytics
+  async getSponsorAnalytics(sponsorId, adId = null) {
+    let query = supabase
+      .from('sponsor_analytics_sa2025')
+      .select('*')
+      .eq('sponsor_id', sponsorId)
+
+    if (adId) {
+      query = query.eq('ad_id', adId)
+    }
+
+    return await query.order('date', { ascending: false })
   }
 }
 
-// ========================================
+//========================================
 // 🔔 NOTIFICATIONS
-// ========================================
-
+//========================================
 export const notificationService = {
   // Get user notifications
   async getNotifications(userId) {
@@ -522,10 +544,9 @@ export const notificationService = {
   }
 }
 
-// ========================================
+//========================================
 // ⚙️ SETTINGS & ADMIN
-// ========================================
-
+//========================================
 export const settingsService = {
   // Get club settings
   async getSettings() {
@@ -543,18 +564,15 @@ export const settingsService = {
         setting_value: value,
         updated_by: updatedBy,
         updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'setting_key'
-      })
+      }, { onConflict: 'setting_key' })
       .select()
       .single()
   }
 }
 
-// ========================================
+//========================================
 // 📊 ANALYTICS & REPORTS
-// ========================================
-
+//========================================
 export const analyticsService = {
   // Get dashboard stats
   async getDashboardStats() {
@@ -565,7 +583,7 @@ export const analyticsService = {
       { count: pendingPayments }
     ] = await Promise.all([
       supabase.from('user_profiles_sa2025').select('*', { count: 'exact', head: true }),
-      supabase.from('player_profiles_sa2025').select('*', { count: 'exact', head: true }),
+      supabase.from('user_profiles_sa2025').select('*', { count: 'exact', head: true }).eq('role', 'player'),
       supabase.from('payments_sa2025').select('*', { count: 'exact', head: true }),
       supabase.from('payments_sa2025').select('*', { count: 'exact', head: true }).eq('status', 'pending')
     ])
@@ -588,10 +606,9 @@ export const analyticsService = {
   }
 }
 
-// ========================================
+//========================================
 // 📁 FILE UPLOAD HELPER
-// ========================================
-
+//========================================
 export const fileService = {
   // Upload file to Supabase Storage
   async uploadFile(bucket, filePath, file) {

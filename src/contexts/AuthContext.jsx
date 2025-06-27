@@ -23,11 +23,9 @@ export const AuthProvider = ({ children }) => {
     const getInitialSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        
         if (session) {
           setUser(session.user);
           setIsAuthenticated(true);
-          
           // Get user profile
           const { data: profileData } = await userService.getUserProfile(session.user.id);
           setProfile(profileData);
@@ -47,7 +45,6 @@ export const AuthProvider = ({ children }) => {
         if (session) {
           setUser(session.user);
           setIsAuthenticated(true);
-          
           try {
             const { data: profileData } = await userService.getUserProfile(session.user.id);
             setProfile(profileData);
@@ -70,22 +67,14 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const { data, error } = await authService.signIn(email, password);
-      
       if (error) {
         return { success: false, error: error.message };
       }
-
+      
       setUser(data.user);
       setProfile(data.profile);
       setIsAuthenticated(true);
-      
-      return { 
-        success: true, 
-        user: { 
-          ...data.user, 
-          ...data.profile 
-        } 
-      };
+      return { success: true, user: { ...data.user, ...data.profile } };
     } catch (error) {
       return { success: false, error: error.message };
     } finally {
@@ -107,11 +96,8 @@ export const AuthProvider = ({ children }) => {
   const updateUser = async (updatedData) => {
     try {
       if (!profile) return;
-      
       const { data, error } = await userService.updateUser(profile.id, updatedData);
-      
       if (error) throw error;
-      
       setProfile(data);
       return { success: true, data };
     } catch (error) {
@@ -134,7 +120,8 @@ export const AuthProvider = ({ children }) => {
       parent: ['children', 'payments', 'schedule', 'messages'],
       player: ['schedule', 'attendance', 'profile', 'messages'],
       board_member: ['reports', 'analytics'],
-      marketing: ['sponsors', 'marketing', 'analytics']
+      marketing: ['sponsors', 'marketing', 'analytics'],
+      sponsor: ['profile', 'ads', 'analytics'] // Sponsor permissions
     };
     
     const permissions = rolePermissions[profile.role] || [];
