@@ -30,7 +30,7 @@ const LoginPage = () => {
     const result = await login(formData.email, formData.password);
     
     if (result.success) {
-      toast.success(`Welcome back, ${result.user.name}!`);
+      toast.success(`Welcome back, ${result.user.full_name || result.user.email}!`);
     } else {
       toast.error(result.error || 'Login failed');
     }
@@ -47,9 +47,10 @@ const LoginPage = () => {
 
   const demoAccounts = [
     { email: 'admin@academy.com', role: 'Admin', password: 'password123' },
+    { email: 'manager@academy.com', role: 'Manager', password: 'password123' },
     { email: 'coach@academy.com', role: 'Coach', password: 'password123' },
     { email: 'parent@academy.com', role: 'Parent', password: 'password123' },
-    { email: 'player@academy.com', role: 'Player', password: 'password123' },
+    { email: 'player@academy.com', role: 'Player', password: 'password123' }
   ];
 
   return (
@@ -57,10 +58,10 @@ const LoginPage = () => {
       {/* Left side - Hero Image */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 to-primary-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-20" />
-        <img
-          src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=600&fit=crop"
-          alt="Soccer Academy"
-          className="absolute inset-0 w-full h-full object-cover"
+        <img 
+          src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=600&fit=crop" 
+          alt="Soccer Academy" 
+          className="absolute inset-0 w-full h-full object-cover" 
         />
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
           <motion.div
@@ -72,16 +73,16 @@ const LoginPage = () => {
               Soccer Academy
             </h1>
             <p className="text-xl leading-relaxed mb-8">
-              Manage your academy with our comprehensive platform. 
-              Track players, schedules, payments, and more.
+              Professional management system for modern soccer academies. 
+              Track players, schedules, payments, and more with role-based access control.
             </p>
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                 <span className="text-2xl">⚽</span>
               </div>
               <div>
-                <p className="font-semibold">Professional Management</p>
-                <p className="text-primary-100">For modern soccer academies</p>
+                <p className="font-semibold">Powered by Supabase</p>
+                <p className="text-primary-100">Secure, scalable, and fast</p>
               </div>
             </div>
           </motion.div>
@@ -150,9 +151,9 @@ const LoginPage = () => {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  <SafeIcon
-                    icon={showPassword ? FiEyeOff : FiEye}
-                    className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                  <SafeIcon 
+                    icon={showPassword ? FiEyeOff : FiEye} 
+                    className="h-5 w-5 text-gray-400 hover:text-gray-600" 
                   />
                 </button>
               </div>
@@ -169,8 +170,8 @@ const LoginPage = () => {
 
           {/* Demo Accounts */}
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Demo Accounts:</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <h3 className="text-sm font-medium text-gray-700 mb-4">Demo Accounts (Supabase):</h3>
+            <div className="grid grid-cols-1 gap-2">
               {demoAccounts.map((account) => (
                 <button
                   key={account.email}
@@ -179,9 +180,13 @@ const LoginPage = () => {
                 >
                   <div className="font-medium text-gray-900">{account.role}</div>
                   <div className="text-gray-500 truncate">{account.email}</div>
+                  <div className="text-gray-400">Password: {account.password}</div>
                 </button>
               ))}
             </div>
+            <p className="text-xs text-gray-500 mt-3">
+              Click any demo account to auto-fill credentials. Each role has different permissions.
+            </p>
           </div>
         </motion.div>
       </div>
