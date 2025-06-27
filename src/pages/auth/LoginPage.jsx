@@ -5,9 +5,10 @@ import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { supabase } from '../../lib/supabase';
 import { toast } from 'react-toastify';
 
-const { FiMail, FiLock, FiEye, FiEyeOff } = FiIcons;
+const { FiMail, FiLock, FiEye, FiEyeOff, FiBriefcase } = FiIcons;
 
 const LoginPage = () => {
   const { login, isAuthenticated } = useAuth();
@@ -28,13 +29,11 @@ const LoginPage = () => {
     setLoading(true);
 
     const result = await login(formData.email, formData.password);
-    
     if (result.success) {
       toast.success(`Welcome back, ${result.user.full_name || result.user.email}!`);
     } else {
       toast.error(result.error || 'Login failed');
     }
-    
     setLoading(false);
   };
 
@@ -45,15 +44,45 @@ const LoginPage = () => {
     });
   };
 
+  const quickLogin = async (email) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: 'password123'
+      });
+
+      if (error) {
+        toast.error('Login failed: ' + error.message);
+        return;
+      }
+
+      toast.success('Logged in successfully!');
+      window.location.hash = '/dashboard';
+    } catch (error) {
+      toast.error('Login error: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const demoAccounts = [
+    { role: 'admin', email: 'admin@academy.com', name: 'Admin Demo' },
+    { role: 'coach', email: 'coach@academy.com', name: 'Coach Demo' },
+    { role: 'parent', email: 'parent@academy.com', name: 'Parent Demo' },
+    { role: 'player', email: 'player@academy.com', name: 'Player Demo' },
+    { role: 'sponsor', email: 'sponsor@nike.com', name: 'Nike Sponsor' }
+  ];
+
   return (
     <div className="min-h-screen flex">
       {/* Left side - Hero Image */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 to-primary-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-20" />
-        <img 
-          src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=600&fit=crop" 
-          alt="Soccer Academy" 
-          className="absolute inset-0 w-full h-full object-cover" 
+        <img
+          src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=600&fit=crop"
+          alt="Soccer Academy"
+          className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
           <motion.div
@@ -65,8 +94,7 @@ const LoginPage = () => {
               Soccer Academy
             </h1>
             <p className="text-xl leading-relaxed mb-8">
-              Professional management system for modern soccer academies. 
-              Track players, schedules, payments, and more with role-based access control.
+              Professional management system for modern soccer academies. Track players, schedules, payments, and more with role-based access control.
             </p>
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
@@ -143,9 +171,9 @@ const LoginPage = () => {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  <SafeIcon 
-                    icon={showPassword ? FiEyeOff : FiEye} 
-                    className="h-5 w-5 text-gray-400 hover:text-gray-600" 
+                  <SafeIcon
+                    icon={showPassword ? FiEyeOff : FiEye}
+                    className="h-5 w-5 text-gray-400 hover:text-gray-600"
                   />
                 </button>
               </div>
@@ -160,12 +188,37 @@ const LoginPage = () => {
             </button>
           </form>
 
-          {/* Create Account Link */}
+          {/* Quick Login Demo Accounts */}
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <div className="text-center">
+            <div className="text-center mb-4">
               <p className="text-sm text-gray-600 mb-4">
-                Need to create demo accounts for testing?
+                Quick demo login (click to instantly access):
               </p>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              {demoAccounts.map((account) => (
+                <button
+                  key={account.email}
+                  onClick={() => quickLogin(account.email)}
+                  disabled={loading}
+                  className="flex items-center justify-between px-4 py-2 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors disabled:opacity-50"
+                >
+                  <span className="font-medium text-primary-700 capitalize flex items-center">
+                    {account.role === 'sponsor' && <SafeIcon icon={FiBriefcase} className="h-4 w-4 mr-2" />}
+                    {account.name}
+                  </span>
+                  <span className="text-sm text-primary-600">{account.email}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-4 text-center">
+              All demo accounts use password: <code className="bg-gray-100 px-1 rounded">password123</code>
+            </p>
+          </div>
+
+          {/* Create Account Link */}
+          <div className="mt-6">
+            <div className="text-center">
               <a
                 href="#/signup"
                 className="inline-flex items-center px-4 py-2 border border-primary-600 text-sm font-medium rounded-lg text-primary-600 bg-white hover:bg-primary-50 transition-colors"

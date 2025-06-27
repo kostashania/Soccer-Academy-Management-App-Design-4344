@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
-import { authService } from '../../services/supabaseService';
+import { supabase } from '../../lib/supabase';
 import { toast } from 'react-toastify';
 
 const { FiMail, FiLock, FiUser, FiPhone, FiMapPin, FiUserCheck, FiBriefcase, FiGlobe } = FiIcons;
@@ -27,24 +27,53 @@ const SignupPage = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await authService.signUp(
-        formData.email, 
-        formData.password, 
-        {
+      // Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.full_name,
+            role: formData.role
+          }
+        }
+      });
+
+      if (authError) {
+        toast.error(authError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (authData.user) {
+        // Create profile
+        const profileData = {
+          auth_user_id: authData.user.id,
           full_name: formData.full_name,
+          email: formData.email,
           role: formData.role,
           phone_number: formData.phone_number,
           address: formData.address,
-          company_name: formData.company_name,
-          website_url: formData.website_url,
-          package_type: formData.package_type,
           language_preference: formData.language_preference
-        }
-      );
+        };
 
-      if (error) {
-        toast.error(error.message || 'Signup failed');
-      } else {
+        // Add sponsor-specific fields
+        if (formData.role === 'sponsor') {
+          profileData.company_name = formData.company_name;
+          profileData.website_url = formData.website_url;
+          profileData.package_type = formData.package_type;
+        }
+
+        const { error: profileError } = await supabase
+          .from('user_profiles_sa2025')
+          .insert(profileData);
+
+        if (profileError) {
+          toast.error('Error creating profile: ' + profileError.message);
+          setLoading(false);
+          return;
+        }
+
         toast.success('Account created successfully! You can now login.');
         // Reset form
         setFormData({
@@ -61,7 +90,7 @@ const SignupPage = () => {
         });
       }
     } catch (error) {
-      toast.error('An error occurred during signup');
+      toast.error('An error occurred during signup: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -77,29 +106,51 @@ const SignupPage = () => {
   const createDemoAccount = async (role, name, email, extraData = {}) => {
     setLoading(true);
     try {
-      const baseData = {
-        full_name: name,
-        role: role,
-        phone_number: '+30 123 456 789' + Math.floor(Math.random() * 10),
-        address: 'Athens, Greece',
-        language_preference: 'en'
-      };
+      // Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: 'password123',
+        options: {
+          data: {
+            full_name: name,
+            role: role
+          }
+        }
+      });
 
-      const userData = { ...baseData, ...extraData };
+      if (authError) {
+        toast.error(`Failed to create ${role} account: ${authError.message}`);
+        setLoading(false);
+        return;
+      }
 
-      const { data, error } = await authService.signUp(
-        email,
-        'password123',
-        userData
-      );
+      if (authData.user) {
+        // Create profile
+        const profileData = {
+          auth_user_id: authData.user.id,
+          full_name: name,
+          email: email,
+          role: role,
+          phone_number: '+30 123 456 789' + Math.floor(Math.random() * 10),
+          address: 'Athens, Greece',
+          language_preference: 'en',
+          ...extraData
+        };
 
-      if (error) {
-        toast.error(`Failed to create ${role} account: ${error.message}`);
-      } else {
+        const { error: profileError } = await supabase
+          .from('user_profiles_sa2025')
+          .insert(profileData);
+
+        if (profileError) {
+          toast.error(`Error creating ${role} profile: ${profileError.message}`);
+          setLoading(false);
+          return;
+        }
+
         toast.success(`${role} demo account created successfully!`);
       }
     } catch (error) {
-      toast.error(`Error creating ${role} account`);
+      toast.error(`Error creating ${role} account: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -138,10 +189,30 @@ const SignupPage = () => {
       extraData: {
         company_name: 'Nike Greece',
         website_url: 'https://nike.com',
-        package_type: 'gold'
+        package_type: 'gold',
+        logo: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop'
       }
     }
   ];
+
+  const quickLogin = async (email) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: 'password123'
+      });
+
+      if (error) {
+        toast.error('Login failed: ' + error.message);
+        return;
+      }
+
+      toast.success('Logged in successfully!');
+      window.location.hash = '/dashboard';
+    } catch (error) {
+      toast.error('Login error: ' + error.message);
+    }
+  };
 
   const isSponsor = formData.role === 'sponsor';
 
@@ -181,6 +252,32 @@ const SignupPage = () => {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Quick Login Section */}
+        <div className="bg-white py-6 px-4 shadow sm:rounded-lg sm:px-10 mb-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Login (Demo Accounts)</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Click to instantly login with demo accounts:
+          </p>
+          <div className="grid grid-cols-1 gap-2">
+            {demoAccounts.map((account) => (
+              <button
+                key={account.email}
+                onClick={() => quickLogin(account.email)}
+                className="flex items-center justify-between px-4 py-2 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors"
+              >
+                <span className="font-medium text-primary-700 capitalize flex items-center">
+                  {account.role === 'sponsor' && <SafeIcon icon={FiBriefcase} className="h-4 w-4 mr-2" />}
+                  {account.role}
+                </span>
+                <span className="text-sm text-primary-600">{account.email}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500 mt-3 text-center">
+            All demo accounts use password: <code className="bg-gray-100 px-1 rounded">password123</code>
+          </p>
         </div>
 
         {/* Manual Account Creation */}
