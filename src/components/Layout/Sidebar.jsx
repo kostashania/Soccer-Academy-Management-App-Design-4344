@@ -5,16 +5,18 @@ import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useApp } from '../../contexts/AppContext';
 
 const { 
-  FiHome, FiCalendar, FiCreditCard, FiShoppingBag, 
-  FiMessageSquare, FiUser, FiSettings, FiUsers,
-  FiBarChart3, FiPackage, FiDollarSign, FiMegaphone
+  FiHome, FiCalendar, FiCreditCard, FiShoppingBag, FiMessageSquare, 
+  FiUser, FiSettings, FiUsers, FiBarChart3, FiPackage, FiDollarSign, 
+  FiMegaphone, FiShoppingCart, FiMapPin, FiTag
 } = FiIcons;
 
 const Sidebar = ({ mobile, onClose }) => {
   const { user } = useAuth();
   const { t } = useTheme();
+  const { cartItems } = useApp();
   const location = useLocation();
 
   const getNavigationItems = () => {
@@ -23,6 +25,7 @@ const Sidebar = ({ mobile, onClose }) => {
       { name: t('calendar'), href: '/calendar', icon: FiCalendar },
       { name: t('payments'), href: '/payments', icon: FiCreditCard },
       { name: t('store'), href: '/store', icon: FiShoppingBag },
+      { name: 'My Cart', href: '/cart', icon: FiShoppingCart, badge: cartItems.length },
       { name: t('messages'), href: '/messages', icon: FiMessageSquare },
     ];
 
@@ -31,6 +34,8 @@ const Sidebar = ({ mobile, onClose }) => {
         { name: 'Users', href: '/admin/users', icon: FiUsers },
         { name: 'Analytics', href: '/admin/analytics', icon: FiBarChart3 },
         { name: 'Inventory', href: '/admin/inventory', icon: FiPackage },
+        { name: 'Locations', href: '/admin/locations', icon: FiMapPin },
+        { name: 'Categories', href: '/admin/categories', icon: FiTag },
         { name: 'Finance', href: '/admin/finance', icon: FiDollarSign },
         { name: 'Sponsors', href: '/admin/sponsors', icon: FiMegaphone },
         { name: 'Settings', href: '/admin/settings', icon: FiSettings },
@@ -43,6 +48,9 @@ const Sidebar = ({ mobile, onClose }) => {
         { name: 'Staff', href: '/manager/staff', icon: FiUsers },
         { name: 'Reports', href: '/manager/reports', icon: FiBarChart3 },
       ],
+      parent: [
+        { name: 'My Children', href: '/parent/children', icon: FiUsers },
+      ]
     };
 
     return [
@@ -72,29 +80,33 @@ const Sidebar = ({ mobile, onClose }) => {
       <nav className="flex-1 space-y-1 px-3 py-6 overflow-y-auto">
         {navigationItems.map((item) => {
           const isActive = location.pathname === item.href;
-          
           return (
             <NavLink
               key={item.name}
               to={item.href}
               onClick={mobile ? onClose : undefined}
-              className={({ isActive }) =>
-                `group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  isActive
-                    ? 'bg-primary-50 text-primary-700 border-r-2 border-primary-600'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`
-              }
+              className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                isActive
+                  ? 'bg-primary-50 text-primary-700 border-r-2 border-primary-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
             >
               {({ isActive }) => (
                 <>
                   <SafeIcon
                     icon={item.icon}
                     className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                      isActive ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-600'
+                      isActive
+                        ? 'text-primary-600'
+                        : 'text-gray-400 group-hover:text-gray-600'
                     }`}
                   />
-                  {item.name}
+                  <span className="flex-1">{item.name}</span>
+                  {item.badge && item.badge > 0 && (
+                    <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-primary-600 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"

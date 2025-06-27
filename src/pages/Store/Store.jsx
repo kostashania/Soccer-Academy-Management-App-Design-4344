@@ -6,6 +6,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useApp } from '../../contexts/AppContext';
 import AddProductModal from '../../components/modals/AddProductModal';
+import ProductViewModal from '../../components/modals/ProductViewModal';
 import { toast } from 'react-toastify';
 
 const { 
@@ -16,12 +17,13 @@ const {
 const Store = () => {
   const { t } = useTheme();
   const { user } = useAuth();
-  const { products, addToCart, cartItems, deleteProduct } = useApp();
-  const [activeTab, setActiveTab] = useState('products');
+  const { products, addToCart, cartItems, deleteProduct, productCategories } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [viewingProduct, setViewingProduct] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   const storeStats = [
     {
@@ -56,10 +58,7 @@ const Store = () => {
 
   const categories = [
     { id: 'all', name: 'All Products' },
-    { id: 'apparel', name: 'Apparel' },
-    { id: 'equipment', name: 'Equipment' },
-    { id: 'accessories', name: 'Accessories' },
-    { id: 'nutrition', name: 'Nutrition' },
+    ...productCategories.map(cat => ({ id: cat.name.toLowerCase(), name: cat.name }))
   ];
 
   const getStatusColor = (status) => {
@@ -99,6 +98,10 @@ const Store = () => {
     }
   };
 
+  const handleViewProduct = (product) => {
+    setViewingProduct(product);
+  };
+
   const canManageProducts = user?.role === 'admin';
 
   return (
@@ -117,12 +120,15 @@ const Store = () => {
         </div>
         <div className="flex items-center space-x-3 mt-4 sm:mt-0">
           {cartItems.length > 0 && (
-            <div className="flex items-center space-x-2 bg-primary-50 px-3 py-2 rounded-lg">
+            <a
+              href="#/cart"
+              className="flex items-center space-x-2 bg-primary-50 px-3 py-2 rounded-lg hover:bg-primary-100 transition-colors"
+            >
               <SafeIcon icon={FiShoppingCart} className="h-4 w-4 text-primary-600" />
               <span className="text-sm font-medium text-primary-700">
                 {cartItems.reduce((sum, item) => sum + item.quantity, 0)} items
               </span>
-            </div>
+            </a>
           )}
           {canManageProducts && (
             <button
@@ -198,11 +204,55 @@ const Store = () => {
               ))}
             </select>
           </div>
-          <button className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <button 
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
             <SafeIcon icon={FiFilter} className="h-4 w-4 mr-2" />
             More Filters
           </button>
         </div>
+        
+        {/* Additional Filters */}
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-4 pt-4 border-t border-gray-200"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                  <option>All Prices</option>
+                  <option>€0 - €50</option>
+                  <option>€50 - €100</option>
+                  <option>€100+</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Stock Status</label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                  <option>All Status</option>
+                  <option>In Stock</option>
+                  <option>Low Stock</option>
+                  <option>Out of Stock</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                  <option>Name A-Z</option>
+                  <option>Name Z-A</option>
+                  <option>Price Low-High</option>
+                  <option>Price High-Low</option>
+                  <option>Most Popular</option>
+                </select>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Products Grid */}
@@ -249,7 +299,7 @@ const Store = () => {
               <p className="text-sm text-gray-600 mb-2">SKU: {product.sku}</p>
               
               <div className="flex items-center justify-between mb-3">
-                <span className="text-lg font-bold text-gray-900">€{product.price}</span>
+                <span className="text-lg font-bold text-gray-900">€{product.price.toFixed(2)}</span>
                 <span className="text-sm text-gray-600">{product.stock} in stock</span>
               </div>
               
@@ -269,7 +319,10 @@ const Store = () => {
                   <SafeIcon icon={FiShoppingCart} className="h-4 w-4 mr-1" />
                   {product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
                 </button>
-                <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={() => handleViewProduct(product)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
                   <SafeIcon icon={FiEye} className="h-4 w-4" />
                 </button>
               </div>
@@ -286,6 +339,13 @@ const Store = () => {
           setEditingProduct(null);
         }}
         product={editingProduct}
+      />
+
+      {/* Product View Modal */}
+      <ProductViewModal
+        isOpen={!!viewingProduct}
+        onClose={() => setViewingProduct(null)}
+        product={viewingProduct}
       />
     </div>
   );

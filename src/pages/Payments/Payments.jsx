@@ -3,103 +3,66 @@ import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useApp } from '../../contexts/AppContext';
+import AddPaymentModal from '../../components/modals/AddPaymentModal';
+import { toast } from 'react-toastify';
 
 const { 
-  FiCreditCard, FiDollarSign, FiTrendingUp, FiAlertCircle, 
-  FiCheck, FiClock, FiDownload, FiPlus, FiFilter, FiSearch 
+  FiCreditCard, FiDollarSign, FiTrendingUp, FiAlertCircle, FiCheck, 
+  FiClock, FiDownload, FiPlus, FiFilter, FiSearch, FiEdit2, FiTrash2 
 } = FiIcons;
 
 const Payments = () => {
   const { t } = useTheme();
+  const { payments, deletePayment, updatePayment } = useApp();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingPayment, setEditingPayment] = useState(null);
 
   const paymentStats = [
     {
-      name: t('totalRevenue'),
-      value: '€45,230',
+      name: 'Total Revenue',
+      value: `€${payments.reduce((sum, p) => sum + p.amount, 0).toLocaleString()}`,
       change: '+12%',
       changeType: 'positive',
       icon: FiDollarSign,
     },
     {
-      name: t('paidThisMonth'),
-      value: '€8,420',
+      name: 'Paid This Month',
+      value: `€${payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0).toLocaleString()}`,
       change: '+18%',
       changeType: 'positive',
       icon: FiCheck,
     },
     {
-      name: t('outstandingBalance'),
-      value: '€2,450',
+      name: 'Outstanding Balance',
+      value: `€${payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0).toLocaleString()}`,
       change: '-8%',
       changeType: 'negative',
       icon: FiAlertCircle,
     },
     {
       name: 'Pending Payments',
-      value: '€890',
+      value: payments.filter(p => p.status === 'pending').length.toString(),
       change: '+5%',
       changeType: 'positive',
       icon: FiClock,
     },
   ];
 
-  const recentPayments = [
-    {
-      id: 1,
-      studentName: 'Emma Johnson',
-      parentName: 'Mike Johnson',
-      amount: '€120',
-      date: '2024-03-15',
-      status: 'paid',
-      method: 'card',
-      description: 'Monthly subscription - March'
-    },
-    {
-      id: 2,
-      studentName: 'Alex Smith',
-      parentName: 'Sarah Smith',
-      amount: '€85',
-      date: '2024-03-14',
-      status: 'paid',
-      method: 'bank',
-      description: 'Equipment purchase'
-    },
-    {
-      id: 3,
-      studentName: 'Maria Garcia',
-      parentName: 'Carlos Garcia',
-      amount: '€120',
-      date: '2024-03-12',
-      status: 'pending',
-      method: 'card',
-      description: 'Monthly subscription - March'
-    },
-    {
-      id: 4,
-      studentName: 'David Wilson',
-      parentName: 'Lisa Wilson',
-      amount: '€65',
-      date: '2024-03-10',
-      status: 'overdue',
-      method: 'bank',
-      description: 'Training camp fees'
-    },
-  ];
-
   const upcomingPayments = [
     {
-      id: 1,
+      id: '1',
       studentName: 'Jake Thompson',
-      amount: '€120',
+      amount: 120.00,
       dueDate: '2024-03-20',
       description: 'Monthly subscription - March'
     },
     {
-      id: 2,
+      id: '2',
       studentName: 'Sophie Brown',
-      amount: '€95',
+      amount: 95.00,
       dueDate: '2024-03-22',
       description: 'Equipment + Monthly fee'
     },
@@ -123,10 +86,27 @@ const Payments = () => {
     }
   };
 
-  const filteredPayments = recentPayments.filter(payment =>
+  const filteredPayments = payments.filter(payment =>
     payment.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     payment.parentName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleEditPayment = (payment) => {
+    setEditingPayment(payment);
+    setShowAddModal(true);
+  };
+
+  const handleDeletePayment = (paymentId) => {
+    if (window.confirm('Are you sure you want to delete this payment?')) {
+      deletePayment(paymentId);
+      toast.success('Payment deleted successfully!');
+    }
+  };
+
+  const handleMarkAsPaid = (paymentId) => {
+    updatePayment(paymentId, { status: 'paid', date: new Date().toISOString().split('T')[0] });
+    toast.success('Payment marked as paid!');
+  };
 
   return (
     <div className="space-y-6">
@@ -141,7 +121,13 @@ const Payments = () => {
           <p className="text-gray-600 mt-1">Manage payments and subscriptions</p>
         </div>
         <div className="flex items-center space-x-3 mt-4 sm:mt-0">
-          <button className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+          <button
+            onClick={() => {
+              setEditingPayment(null);
+              setShowAddModal(true);
+            }}
+            className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
             <SafeIcon icon={FiPlus} className="h-4 w-4 mr-2" />
             Add Payment
           </button>
@@ -168,11 +154,9 @@ const Payments = () => {
               </div>
             </div>
             <div className="mt-4 flex items-center">
-              <span
-                className={`text-sm font-medium ${
-                  stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
+              <span className={`text-sm font-medium ${
+                stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+              }`}>
                 {stat.change}
               </span>
               <span className="text-sm text-gray-500 ml-2">from last month</span>
@@ -285,7 +269,7 @@ const Payments = () => {
                     <tr key={payment.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-4 px-6 font-medium text-gray-900">{payment.studentName}</td>
                       <td className="py-4 px-6 text-gray-600">{payment.parentName}</td>
-                      <td className="py-4 px-6 font-semibold text-gray-900">{payment.amount}</td>
+                      <td className="py-4 px-6 font-semibold text-gray-900">€{payment.amount.toFixed(2)}</td>
                       <td className="py-4 px-6 text-gray-600">{payment.date}</td>
                       <td className="py-4 px-6">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
@@ -294,9 +278,31 @@ const Payments = () => {
                         </span>
                       </td>
                       <td className="py-4 px-6">
-                        <button className="text-primary-600 hover:text-primary-700 font-medium">
-                          <SafeIcon icon={FiDownload} className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          {payment.status === 'pending' && (
+                            <button
+                              onClick={() => handleMarkAsPaid(payment.id)}
+                              className="text-green-600 hover:text-green-700 font-medium text-sm"
+                            >
+                              Mark Paid
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleEditPayment(payment)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <SafeIcon icon={FiEdit2} className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeletePayment(payment.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <SafeIcon icon={FiTrash2} className="h-4 w-4" />
+                          </button>
+                          <button className="text-primary-600 hover:text-primary-700">
+                            <SafeIcon icon={FiDownload} className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -318,7 +324,7 @@ const Payments = () => {
                     <p className="text-sm text-yellow-700 font-medium">Due: {payment.dueDate}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-gray-900">{payment.amount}</p>
+                    <p className="text-lg font-bold text-gray-900">€{payment.amount.toFixed(2)}</p>
                     <button className="mt-2 px-3 py-1 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors">
                       Send Reminder
                     </button>
@@ -372,6 +378,16 @@ const Payments = () => {
           </div>
         )}
       </motion.div>
+
+      {/* Add/Edit Payment Modal */}
+      <AddPaymentModal
+        isOpen={showAddModal}
+        onClose={() => {
+          setShowAddModal(false);
+          setEditingPayment(null);
+        }}
+        payment={editingPayment}
+      />
     </div>
   );
 };

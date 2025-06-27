@@ -23,6 +23,7 @@ import PlayerDashboard from './pages/player/PlayerDashboard';
 import Calendar from './pages/Calendar/Calendar';
 import Payments from './pages/Payments/Payments';
 import Store from './pages/Store/Store';
+import Cart from './pages/Cart/Cart';
 import Messages from './pages/Messages/Messages';
 import Profile from './pages/Profile/Profile';
 
@@ -82,6 +83,7 @@ function App() {
                           <Route path="/calendar" element={<Calendar />} />
                           <Route path="/payments" element={<Payments />} />
                           <Route path="/store" element={<Store />} />
+                          <Route path="/cart" element={<Cart />} />
                           <Route path="/messages" element={<Messages />} />
                           <Route path="/profile" element={<Profile />} />
                           

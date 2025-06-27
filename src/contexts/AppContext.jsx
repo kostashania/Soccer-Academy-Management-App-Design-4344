@@ -11,7 +11,7 @@ export const useApp = () => {
   return context;
 };
 
-export const AppProvider = ({ children }) => {
+export const AppProvider = ({ children: reactChildren }) => {
   // Users Management
   const [users, setUsers] = useState([
     {
@@ -50,7 +50,7 @@ export const AppProvider = ({ children }) => {
       joinDate: '2023-03-01',
       phone: '+30 123 456 7892',
       address: 'Athens, Greece',
-      children: ['Emma Johnson', 'Jake Johnson']
+      studentChildren: []
     },
     {
       id: '4',
@@ -68,6 +68,47 @@ export const AppProvider = ({ children }) => {
     }
   ]);
 
+  // Students/Children Management
+  const [students, setStudents] = useState([
+    {
+      id: '1',
+      name: 'Emma Johnson',
+      parentId: '3',
+      age: 8,
+      team: 'K6 Lions',
+      position: 'Forward',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+    }
+  ]);
+
+  // Locations Management
+  const [locations, setLocations] = useState([
+    {
+      id: '1',
+      name: 'Main Stadium',
+      address: 'Athens Olympic Stadium, Spyros Louis Ring, Marousi 151 23, Greece',
+      googleMapsLink: 'https://maps.google.com/place/Athens+Olympic+Stadium',
+      capacity: 5000,
+      type: 'stadium'
+    },
+    {
+      id: '2',
+      name: 'Training Field A',
+      address: 'Academy Training Grounds, Field A',
+      googleMapsLink: 'https://maps.google.com/place/Training+Field+A',
+      capacity: 200,
+      type: 'field'
+    }
+  ]);
+
+  // Product Categories Management
+  const [productCategories, setProductCategories] = useState([
+    { id: '1', name: 'Equipment', description: 'Soccer equipment and gear' },
+    { id: '2', name: 'Apparel', description: 'Clothing and uniforms' },
+    { id: '3', name: 'Accessories', description: 'Soccer accessories' },
+    { id: '4', name: 'Nutrition', description: 'Sports nutrition and supplements' }
+  ]);
+
   // Products Management
   const [products, setProducts] = useState([
     {
@@ -75,36 +116,30 @@ export const AppProvider = ({ children }) => {
       name: 'Training Jersey',
       category: 'apparel',
       sku: 'TJ-001',
-      price: 35,
+      price: 35.00,
       stock: 45,
       sold: 89,
       image: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=300&h=300&fit=crop',
       status: 'in-stock',
-      description: 'Official training jersey for all teams'
+      description: 'Official training jersey for all teams',
+      size: 'Multiple',
+      customField1: 'Material: 100% Polyester',
+      customField2: 'Care: Machine wash cold'
     },
     {
       id: '2',
       name: 'Soccer Boots',
       category: 'equipment',
       sku: 'SB-002',
-      price: 85,
+      price: 85.00,
       stock: 23,
       sold: 67,
       image: 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=300&h=300&fit=crop',
       status: 'in-stock',
-      description: 'Professional soccer boots for all surfaces'
-    },
-    {
-      id: '3',
-      name: 'Soccer Ball',
-      category: 'equipment',
-      sku: 'SB-004',
-      price: 45,
-      stock: 5,
-      sold: 234,
-      image: 'https://images.unsplash.com/photo-1614632537190-23e4b2efe8c0?w=300&h=300&fit=crop',
-      status: 'low-stock',
-      description: 'FIFA approved soccer ball'
+      description: 'Professional soccer boots for all surfaces',
+      size: 'EU 35-45',
+      customField1: 'Surface: All terrain',
+      customField2: 'Brand: AcademyPro'
     }
   ]);
 
@@ -116,23 +151,11 @@ export const AppProvider = ({ children }) => {
       date: new Date(),
       time: '16:00',
       duration: 90,
-      location: 'Field A',
+      locationId: '2',
       type: 'training',
-      participants: ['Emma Johnson'],
+      participants: ['1'],
       coach: 'Sarah Coach',
       description: 'Regular training session'
-    },
-    {
-      id: '2',
-      title: 'K10 Eagles vs Blue Stars',
-      date: new Date(Date.now() + 86400000),
-      time: '10:00',
-      duration: 90,
-      location: 'Main Stadium',
-      type: 'match',
-      participants: ['Alex Player'],
-      coach: 'Sarah Coach',
-      description: 'Championship match'
     }
   ]);
 
@@ -141,22 +164,28 @@ export const AppProvider = ({ children }) => {
     {
       id: '1',
       studentName: 'Emma Johnson',
-      parentName: 'Mike Johnson',
-      amount: 120,
+      parentName: 'Mike Parent',
+      amount: 120.00,
       date: '2024-03-15',
       status: 'paid',
       method: 'card',
-      description: 'Monthly subscription - March'
-    },
+      description: 'Monthly subscription - March',
+      currency: 'EUR'
+    }
+  ]);
+
+  // Sponsors Management
+  const [sponsors, setSponsors] = useState([
     {
-      id: '2',
-      studentName: 'Alex Smith',
-      parentName: 'Sarah Smith',
-      amount: 85,
-      date: '2024-03-14',
-      status: 'paid',
-      method: 'bank',
-      description: 'Equipment purchase'
+      id: '1',
+      name: 'SportTech Solutions',
+      logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=100&fit=crop',
+      contactEmail: 'contact@sporttech.com',
+      amount: 5000.00,
+      startDate: '2024-01-01',
+      endDate: '2024-12-31',
+      status: 'active',
+      benefits: 'Logo on jerseys, stadium banner'
     }
   ]);
 
@@ -183,7 +212,8 @@ export const AppProvider = ({ children }) => {
       senderName: 'Sarah Coach',
       content: 'Hi! Training session has been moved to 5 PM tomorrow.',
       timestamp: new Date().toISOString(),
-      status: 'delivered'
+      status: 'delivered',
+      attachments: []
     }
   ]);
 
@@ -196,45 +226,70 @@ export const AppProvider = ({ children }) => {
       id: '1',
       type: 'payment',
       title: 'Payment Received',
-      message: 'Payment of €120 received from Mike Johnson',
+      message: 'Payment of €120 received from Mike Parent',
       time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      read: false
-    },
-    {
-      id: '2',
-      type: 'training',
-      title: 'Training Scheduled',
-      message: 'New training session scheduled for K10 team',
-      time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
       read: false
     }
   ]);
 
   // Load data from localStorage on mount
   useEffect(() => {
-    const savedUsers = localStorage.getItem('academy_users');
-    const savedProducts = localStorage.getItem('academy_products');
-    const savedEvents = localStorage.getItem('academy_events');
-    const savedPayments = localStorage.getItem('academy_payments');
-    const savedConversations = localStorage.getItem('academy_conversations');
-    const savedMessages = localStorage.getItem('academy_messages');
-    const savedCart = localStorage.getItem('academy_cart');
-    const savedNotifications = localStorage.getItem('academy_notifications');
+    const savedData = {
+      users: localStorage.getItem('academy_users'),
+      students: localStorage.getItem('academy_students'),
+      locations: localStorage.getItem('academy_locations'),
+      productCategories: localStorage.getItem('academy_categories'),
+      products: localStorage.getItem('academy_products'),
+      events: localStorage.getItem('academy_events'),
+      payments: localStorage.getItem('academy_payments'),
+      sponsors: localStorage.getItem('academy_sponsors'),
+      conversations: localStorage.getItem('academy_conversations'),
+      messages: localStorage.getItem('academy_messages'),
+      cart: localStorage.getItem('academy_cart'),
+      notifications: localStorage.getItem('academy_notifications')
+    };
 
-    if (savedUsers) setUsers(JSON.parse(savedUsers));
-    if (savedProducts) setProducts(JSON.parse(savedProducts));
-    if (savedEvents) setEvents(JSON.parse(savedEvents));
-    if (savedPayments) setPayments(JSON.parse(savedPayments));
-    if (savedConversations) setConversations(JSON.parse(savedConversations));
-    if (savedMessages) setMessages(JSON.parse(savedMessages));
-    if (savedCart) setCartItems(JSON.parse(savedCart));
-    if (savedNotifications) setNotifications(JSON.parse(savedNotifications));
+    Object.entries(savedData).forEach(([key, value]) => {
+      if (value) {
+        try {
+          const parsed = JSON.parse(value);
+          switch (key) {
+            case 'users': setUsers(parsed); break;
+            case 'students': setStudents(parsed); break;
+            case 'locations': setLocations(parsed); break;
+            case 'productCategories': setProductCategories(parsed); break;
+            case 'products': setProducts(parsed); break;
+            case 'events': setEvents(parsed); break;
+            case 'payments': setPayments(parsed); break;
+            case 'sponsors': setSponsors(parsed); break;
+            case 'conversations': setConversations(parsed); break;
+            case 'messages': setMessages(parsed); break;
+            case 'cart': setCartItems(parsed); break;
+            case 'notifications': setNotifications(parsed); break;
+          }
+        } catch (error) {
+          console.error(`Error parsing ${key}:`, error);
+        }
+      }
+    });
   }, []);
 
   // Save to localStorage whenever data changes
   useEffect(() => {
     localStorage.setItem('academy_users', JSON.stringify(users));
   }, [users]);
+
+  useEffect(() => {
+    localStorage.setItem('academy_students', JSON.stringify(students));
+  }, [students]);
+
+  useEffect(() => {
+    localStorage.setItem('academy_locations', JSON.stringify(locations));
+  }, [locations]);
+
+  useEffect(() => {
+    localStorage.setItem('academy_categories', JSON.stringify(productCategories));
+  }, [productCategories]);
 
   useEffect(() => {
     localStorage.setItem('academy_products', JSON.stringify(products));
@@ -247,6 +302,10 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('academy_payments', JSON.stringify(payments));
   }, [payments]);
+
+  useEffect(() => {
+    localStorage.setItem('academy_sponsors', JSON.stringify(sponsors));
+  }, [sponsors]);
 
   useEffect(() => {
     localStorage.setItem('academy_conversations', JSON.stringify(conversations));
@@ -263,6 +322,15 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('academy_notifications', JSON.stringify(notifications));
   }, [notifications]);
+
+  // File upload helper
+  const handleFileUpload = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(file);
+    });
+  };
 
   // User Management Functions
   const addUser = (userData) => {
@@ -284,6 +352,66 @@ export const AppProvider = ({ children }) => {
 
   const deleteUser = (userId) => {
     setUsers(prev => prev.filter(user => user.id !== userId));
+  };
+
+  // Students Management Functions
+  const addStudent = (studentData) => {
+    const newStudent = {
+      id: uuidv4(),
+      ...studentData
+    };
+    setStudents(prev => [...prev, newStudent]);
+    return newStudent;
+  };
+
+  const updateStudent = (studentId, updates) => {
+    setStudents(prev => prev.map(student => 
+      student.id === studentId ? { ...student, ...updates } : student
+    ));
+  };
+
+  const deleteStudent = (studentId) => {
+    setStudents(prev => prev.filter(student => student.id !== studentId));
+  };
+
+  // Location Management Functions
+  const addLocation = (locationData) => {
+    const newLocation = {
+      id: uuidv4(),
+      ...locationData
+    };
+    setLocations(prev => [...prev, newLocation]);
+    return newLocation;
+  };
+
+  const updateLocation = (locationId, updates) => {
+    setLocations(prev => prev.map(location => 
+      location.id === locationId ? { ...location, ...updates } : location
+    ));
+  };
+
+  const deleteLocation = (locationId) => {
+    setLocations(prev => prev.filter(location => location.id !== locationId));
+  };
+
+  // Product Category Management Functions
+  const addProductCategory = (categoryData) => {
+    const newCategory = {
+      id: uuidv4(),
+      ...categoryData
+    };
+    setProductCategories(prev => [...prev, newCategory]);
+    return newCategory;
+  };
+
+  const updateProductCategory = (categoryId, updates) => {
+    setProductCategories(prev => prev.map(category => 
+      category.id === categoryId ? { ...category, ...updates } : category
+    ));
+  };
+
+  const deleteProductCategory = (categoryId) => {
+    setProductCategories(prev => prev.filter(category => category.id !== categoryId));
   };
 
   // Product Management Functions
@@ -334,7 +462,8 @@ export const AppProvider = ({ children }) => {
     const newPayment = {
       id: uuidv4(),
       ...paymentData,
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      currency: 'EUR'
     };
     setPayments(prev => [...prev, newPayment]);
     return newPayment;
@@ -346,14 +475,39 @@ export const AppProvider = ({ children }) => {
     ));
   };
 
+  const deletePayment = (paymentId) => {
+    setPayments(prev => prev.filter(payment => payment.id !== paymentId));
+  };
+
+  // Sponsor Management Functions
+  const addSponsor = (sponsorData) => {
+    const newSponsor = {
+      id: uuidv4(),
+      ...sponsorData
+    };
+    setSponsors(prev => [...prev, newSponsor]);
+    return newSponsor;
+  };
+
+  const updateSponsor = (sponsorId, updates) => {
+    setSponsors(prev => prev.map(sponsor => 
+      sponsor.id === sponsorId ? { ...sponsor, ...updates } : sponsor
+    ));
+  };
+
+  const deleteSponsor = (sponsorId) => {
+    setSponsors(prev => prev.filter(sponsor => sponsor.id !== sponsorId));
+  };
+
   // Message Management Functions
-  const sendMessage = (conversationId, senderId, senderName, content) => {
+  const sendMessage = (conversationId, senderId, senderName, content, attachments = []) => {
     const newMessage = {
       id: uuidv4(),
       conversationId,
       senderId,
       senderName,
       content,
+      attachments,
       timestamp: new Date().toISOString(),
       status: 'sent'
     };
@@ -444,12 +598,29 @@ export const AppProvider = ({ children }) => {
   // Get unread notifications count
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
+  // Helper functions
+  const getLocationById = (locationId) => {
+    return locations.find(location => location.id === locationId);
+  };
+
+  const getCategoryById = (categoryId) => {
+    return productCategories.find(category => category.id === categoryId);
+  };
+
+  const getStudentsByParentId = (parentId) => {
+    return students.filter(student => student.parentId === parentId);
+  };
+
   const value = {
     // Data
     users,
+    students,
+    locations,
+    productCategories,
     products,
     events,
     payments,
+    sponsors,
     conversations,
     messages,
     cartItems,
@@ -460,6 +631,24 @@ export const AppProvider = ({ children }) => {
     addUser,
     updateUser,
     deleteUser,
+    
+    // Students Management
+    addStudent,
+    updateStudent,
+    deleteStudent,
+    getStudentsByParentId,
+    
+    // Location Management
+    addLocation,
+    updateLocation,
+    deleteLocation,
+    getLocationById,
+    
+    // Product Category Management
+    addProductCategory,
+    updateProductCategory,
+    deleteProductCategory,
+    getCategoryById,
     
     // Product Management
     addProduct,
@@ -474,6 +663,12 @@ export const AppProvider = ({ children }) => {
     // Payment Management
     addPayment,
     updatePayment,
+    deletePayment,
+    
+    // Sponsor Management
+    addSponsor,
+    updateSponsor,
+    deleteSponsor,
     
     // Message Management
     sendMessage,
@@ -488,12 +683,15 @@ export const AppProvider = ({ children }) => {
     // Notification Management
     addNotification,
     markNotificationRead,
-    markAllNotificationsRead
+    markAllNotificationsRead,
+    
+    // File handling
+    handleFileUpload
   };
 
   return (
     <AppContext.Provider value={value}>
-      {children}
+      {reactChildren}
     </AppContext.Provider>
   );
 };
