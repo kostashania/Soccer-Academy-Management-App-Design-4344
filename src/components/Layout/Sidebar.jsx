@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FiHome, FiUsers, FiCalendar, FiDollarSign, FiBarChart3, FiSettings, FiMessageSquare, FiUser, FiClipboard } from 'react-icons/fi';
+import { FiHome, FiUsers, FiCalendar, FiDollarSign, FiBarChart2, FiSettings, FiMessageSquare, FiUser, FiClipboard } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Sidebar = ({ onClose }) => {
@@ -24,10 +24,9 @@ const Sidebar = ({ onClose }) => {
           { name: 'Teams', href: '/teams', icon: FiUsers },
           { name: 'Invoices', href: '/invoices', icon: FiDollarSign },
           { name: 'Payments', href: '/payments', icon: FiDollarSign },
-          { name: 'Reports', href: '/reports', icon: FiBarChart3 },
+          { name: 'Reports', href: '/reports', icon: FiBarChart2 },
           { name: 'Settings', href: '/settings', icon: FiSettings }
         ];
-      
       case 'trainer':
         return [
           ...baseItems,
@@ -35,14 +34,12 @@ const Sidebar = ({ onClose }) => {
           { name: 'Attendance', href: '/attendance', icon: FiClipboard },
           { name: 'Training Sessions', href: '/training-sessions', icon: FiCalendar }
         ];
-      
       case 'parent':
         return [
           ...baseItems,
           { name: 'My Children', href: '/my-children', icon: FiUsers },
           { name: 'Payments', href: '/payments', icon: FiDollarSign }
         ];
-      
       default:
         return baseItems;
     }

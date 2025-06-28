@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiUsers, FiDollarSign, FiBarChart3, FiSettings, FiPlus, FiEdit, FiTrash2, FiEye } from 'react-icons/fi';
+import { FiUsers, FiDollarSign, FiBarChart2, FiSettings, FiPlus, FiEdit, FiTrash2, FiEye } from 'react-icons/fi';
 import { useApp } from '../../contexts/AppContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
@@ -95,7 +95,7 @@ const SuperAdminDashboard = () => {
     {
       name: 'Outstanding',
       value: `$${financialSummary.outstandingAmount.toFixed(2)}`,
-      icon: FiBarChart3,
+      icon: FiBarChart2,
       color: 'orange'
     },
     {
@@ -159,7 +159,7 @@ const SuperAdminDashboard = () => {
             onClick={() => window.location.href = '/reports'}
             className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            <FiBarChart3 className="h-4 w-4 mr-2" />
+            <FiBarChart2 className="h-4 w-4 mr-2" />
             View Reports
           </button>
         </div>

@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import { toast } from 'react-toastify';
 
@@ -26,392 +25,85 @@ export const AppProvider = ({ children }) => {
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Load data when authenticated
+  // Mock data for development
   useEffect(() => {
     if (isAuthenticated && profile) {
-      loadInitialData();
+      loadMockData();
     }
   }, [isAuthenticated, profile]);
 
-  const loadInitialData = async () => {
+  const loadMockData = () => {
     setLoading(true);
-    try {
-      await Promise.all([
-        loadPlayers(),
-        loadTeams(),
-        loadInvoices(),
-        loadPayments(),
-        loadSeasons(),
-        loadTrainingSessions(),
-        loadAttendance()
-      ]);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      toast.error('Error loading data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Data loading functions
-  const loadPlayers = async () => {
-    try {
-      let query = supabase
-        .from('players')
-        .select(`
-          *,
-          profile:profiles!players_user_id_fkey(first_name, last_name, phone),
-          parent:profiles!players_parent_id_fkey(first_name, last_name, phone),
-          team:teams(name)
-        `);
-
-      // Role-based filtering
-      if (profile?.role === 'parent') {
-        query = query.eq('parent_id', user.id);
-      } else if (profile?.role === 'trainer') {
-        query = query.in('team_id', await getTrainerTeamIds());
+    
+    // Mock players
+    setPlayers([
+      {
+        id: '1',
+        profile: { first_name: 'John', last_name: 'Doe' },
+        parent_id: 'parent1',
+        team_id: 'team1',
+        is_active: true
+      },
+      {
+        id: '2',
+        profile: { first_name: 'Jane', last_name: 'Smith' },
+        parent_id: 'parent2',
+        team_id: 'team1',
+        is_active: true
       }
+    ]);
 
-      const { data, error } = await query;
-      if (error) throw error;
-      setPlayers(data || []);
-    } catch (error) {
-      console.error('Error loading players:', error);
-    }
-  };
-
-  const loadTeams = async () => {
-    try {
-      let query = supabase
-        .from('teams')
-        .select(`
-          *,
-          trainer:profiles!teams_trainer_id_fkey(first_name, last_name),
-          season:seasons(name, start_date, end_date)
-        `);
-
-      if (profile?.role === 'trainer') {
-        query = query.eq('trainer_id', user.id);
+    // Mock teams
+    setTeams([
+      {
+        id: 'team1',
+        name: 'U12 Lions',
+        trainer_id: 'trainer1'
       }
+    ]);
 
-      const { data, error } = await query;
-      if (error) throw error;
-      setTeams(data || []);
-    } catch (error) {
-      console.error('Error loading teams:', error);
-    }
-  };
-
-  const loadInvoices = async () => {
-    try {
-      let query = supabase
-        .from('invoices')
-        .select(`
-          *,
-          player:players!inner(
-            id,
-            profile:profiles!players_user_id_fkey(first_name, last_name),
-            parent:profiles!players_parent_id_fkey(first_name, last_name)
-          ),
-          custom_fee_adjustments(*)
-        `)
-        .order('created_at', { ascending: false });
-
-      // Role-based filtering
-      if (profile?.role === 'parent') {
-        query = query.eq('player.parent_id', user.id);
+    // Mock invoices
+    setInvoices([
+      {
+        id: 'inv1',
+        player_id: '1',
+        amount: 120,
+        due_date: '2024-02-15',
+        status: 'pending',
+        created_at: '2024-01-15'
       }
+    ]);
 
-      const { data, error } = await query;
-      if (error) throw error;
-      setInvoices(data || []);
-    } catch (error) {
-      console.error('Error loading invoices:', error);
-    }
-  };
-
-  const loadPayments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('payments')
-        .select(`
-          *,
-          invoice:invoices(
-            *,
-            player:players(
-              profile:profiles!players_user_id_fkey(first_name, last_name)
-            )
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setPayments(data || []);
-    } catch (error) {
-      console.error('Error loading payments:', error);
-    }
-  };
-
-  const loadSeasons = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('seasons')
-        .select('*')
-        .order('start_date', { ascending: false });
-
-      if (error) throw error;
-      setSeasons(data || []);
-    } catch (error) {
-      console.error('Error loading seasons:', error);
-    }
-  };
-
-  const loadTrainingSessions = async () => {
-    try {
-      let query = supabase
-        .from('training_sessions')
-        .select(`
-          *,
-          team:teams(name)
-        `)
-        .order('start_time', { ascending: true });
-
-      if (profile?.role === 'trainer') {
-        const teamIds = await getTrainerTeamIds();
-        query = query.in('team_id', teamIds);
+    // Mock payments
+    setPayments([
+      {
+        id: 'pay1',
+        invoice_id: 'inv1',
+        amount_paid: 120,
+        status: 'paid',
+        created_at: '2024-01-20'
       }
+    ]);
 
-      const { data, error } = await query;
-      if (error) throw error;
-      setTrainingSessions(data || []);
-    } catch (error) {
-      console.error('Error loading training sessions:', error);
-    }
-  };
+    // Mock attendance
+    setAttendance([
+      {
+        id: 'att1',
+        player_id: '1',
+        training_date: '2024-01-15',
+        status: 'present'
+      }
+    ]);
 
-  const loadAttendance = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('attendance')
-        .select(`
-          *,
-          player:players(
-            profile:profiles!players_user_id_fkey(first_name, last_name)
-          )
-        `)
-        .order('training_date', { ascending: false });
-
-      if (error) throw error;
-      setAttendance(data || []);
-    } catch (error) {
-      console.error('Error loading attendance:', error);
-    }
+    setLoading(false);
   };
 
   // Helper functions
-  const getTrainerTeamIds = async () => {
-    const { data, error } = await supabase
-      .from('teams')
-      .select('id')
-      .eq('trainer_id', user.id);
-
-    if (error) return [];
-    return data.map(team => team.id);
-  };
-
-  // CRUD Operations
-  const createPlayer = async (playerData) => {
-    try {
-      const { data, error } = await supabase
-        .from('players')
-        .insert(playerData)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      await loadPlayers();
-      toast.success('Player created successfully');
-      return { success: true, data };
-    } catch (error) {
-      toast.error('Error creating player');
-      return { success: false, error: error.message };
-    }
-  };
-
-  const updatePlayer = async (id, updates) => {
-    try {
-      const { data, error } = await supabase
-        .from('players')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      await loadPlayers();
-      toast.success('Player updated successfully');
-      return { success: true, data };
-    } catch (error) {
-      toast.error('Error updating player');
-      return { success: false, error: error.message };
-    }
-  };
-
-  const createInvoice = async (invoiceData) => {
-    try {
-      const { data, error } = await supabase
-        .from('invoices')
-        .insert(invoiceData)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      await loadInvoices();
-      toast.success('Invoice created successfully');
-      return { success: true, data };
-    } catch (error) {
-      toast.error('Error creating invoice');
-      return { success: false, error: error.message };
-    }
-  };
-
-  const adjustInvoiceAmount = async (invoiceId, newAmount, reason) => {
-    try {
-      // Create adjustment record
-      const { error: adjustmentError } = await supabase
-        .from('custom_fee_adjustments')
-        .insert({
-          invoice_id: invoiceId,
-          admin_id: user.id,
-          new_amount: newAmount,
-          reason: reason
-        });
-
-      if (adjustmentError) throw adjustmentError;
-
-      // Update invoice amount
-      const { error: updateError } = await supabase
-        .from('invoices')
-        .update({ amount: newAmount })
-        .eq('id', invoiceId);
-
-      if (updateError) throw updateError;
-
-      await loadInvoices();
-      toast.success('Invoice amount adjusted successfully');
-      return { success: true };
-    } catch (error) {
-      toast.error('Error adjusting invoice amount');
-      return { success: false, error: error.message };
-    }
-  };
-
-  const recordPayment = async (paymentData) => {
-    try {
-      const { data, error } = await supabase
-        .from('payments')
-        .insert(paymentData)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Update invoice status if fully paid
-      const invoice = invoices.find(inv => inv.id === paymentData.invoice_id);
-      if (invoice && paymentData.amount_paid >= invoice.amount) {
-        await supabase
-          .from('invoices')
-          .update({ status: 'paid' })
-          .eq('id', paymentData.invoice_id);
-      }
-
-      await Promise.all([loadPayments(), loadInvoices()]);
-      toast.success('Payment recorded successfully');
-      return { success: true, data };
-    } catch (error) {
-      toast.error('Error recording payment');
-      return { success: false, error: error.message };
-    }
-  };
-
-  const markAttendance = async (playerId, trainingDate, status) => {
-    try {
-      const { data, error } = await supabase
-        .from('attendance')
-        .upsert({
-          player_id: playerId,
-          training_date: trainingDate,
-          status: status
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      await loadAttendance();
-      toast.success('Attendance marked successfully');
-      return { success: true, data };
-    } catch (error) {
-      toast.error('Error marking attendance');
-      return { success: false, error: error.message };
-    }
-  };
-
-  // Generate monthly invoices (Admin only)
-  const generateMonthlyInvoices = async () => {
-    if (profile?.role !== 'admin') {
-      toast.error('Unauthorized action');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      // Get all active players
-      const { data: activePlayers, error } = await supabase
-        .from('players')
-        .select('id, monthly_fee')
-        .eq('is_active', true);
-
-      if (error) throw error;
-
-      // Create invoices for next month
-      const nextMonth = new Date();
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
-      
-      const invoiceData = activePlayers.map(player => ({
-        player_id: player.id,
-        due_date: new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 15).toISOString().split('T')[0],
-        amount: player.monthly_fee || 50.00,
-        status: 'pending'
-      }));
-
-      const { error: insertError } = await supabase
-        .from('invoices')
-        .insert(invoiceData);
-
-      if (insertError) throw insertError;
-
-      await loadInvoices();
-      toast.success(`Generated ${invoiceData.length} invoices for next month`);
-    } catch (error) {
-      toast.error('Error generating monthly invoices');
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Analytics and Reports
   const getFinancialSummary = () => {
     const totalRevenue = payments.reduce((sum, payment) => sum + parseFloat(payment.amount_paid || 0), 0);
     const outstandingAmount = invoices
       .filter(invoice => invoice.status === 'pending' || invoice.status === 'overdue')
       .reduce((sum, invoice) => sum + parseFloat(invoice.amount || 0), 0);
-    
     const paidInvoices = invoices.filter(invoice => invoice.status === 'paid').length;
     const overdueInvoices = invoices.filter(invoice => invoice.status === 'overdue').length;
 
@@ -436,6 +128,75 @@ export const AppProvider = ({ children }) => {
     };
   };
 
+  // CRUD Operations (mock implementations)
+  const generateMonthlyInvoices = async () => {
+    setLoading(true);
+    try {
+      // Mock invoice generation
+      toast.success('Monthly invoices generated successfully!');
+    } catch (error) {
+      toast.error('Error generating invoices');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const adjustInvoiceAmount = async (invoiceId, newAmount, reason) => {
+    try {
+      // Mock adjustment
+      setInvoices(prev => prev.map(inv => 
+        inv.id === invoiceId 
+          ? { ...inv, amount: newAmount }
+          : inv
+      ));
+      toast.success('Invoice adjusted successfully');
+      return { success: true };
+    } catch (error) {
+      toast.error('Error adjusting invoice');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const recordPayment = async (paymentData) => {
+    try {
+      // Mock payment recording
+      const newPayment = {
+        id: Date.now().toString(),
+        ...paymentData,
+        created_at: new Date().toISOString()
+      };
+      setPayments(prev => [...prev, newPayment]);
+      toast.success('Payment recorded successfully');
+      return { success: true };
+    } catch (error) {
+      toast.error('Error recording payment');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const markAttendance = async (playerId, trainingDate, status) => {
+    try {
+      // Mock attendance marking
+      const newAttendance = {
+        id: Date.now().toString(),
+        player_id: playerId,
+        training_date: trainingDate,
+        status: status
+      };
+      setAttendance(prev => {
+        const filtered = prev.filter(att => 
+          !(att.player_id === playerId && att.training_date === trainingDate)
+        );
+        return [...filtered, newAttendance];
+      });
+      toast.success('Attendance marked successfully');
+      return { success: true };
+    } catch (error) {
+      toast.error('Error marking attendance');
+      return { success: false, error: error.message };
+    }
+  };
+
   const value = {
     // Data
     players,
@@ -447,26 +208,13 @@ export const AppProvider = ({ children }) => {
     attendance,
     loading,
 
-    // CRUD Operations
-    createPlayer,
-    updatePlayer,
-    createInvoice,
-    adjustInvoiceAmount,
-    recordPayment,
-    markAttendance,
-
-    // Admin Functions
-    generateMonthlyInvoices,
-
-    // Analytics
+    // Functions
     getFinancialSummary,
     getAttendanceStats,
-
-    // Refresh Data
-    loadInitialData,
-    loadPlayers,
-    loadInvoices,
-    loadPayments
+    generateMonthlyInvoices,
+    adjustInvoiceAmount,
+    recordPayment,
+    markAttendance
   };
 
   return (

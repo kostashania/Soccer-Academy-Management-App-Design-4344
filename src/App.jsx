@@ -5,7 +5,6 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AppProvider } from './contexts/AppContext';
-
 import Layout from './components/Layout/Layout';
 import LoginPage from './pages/auth/LoginPage';
 import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
@@ -20,28 +19,29 @@ const LoadingSpinner = () => (
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { profile, isAuthenticated, loading } = useAuth();
-
+  
   if (loading) return <LoadingSpinner />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  
   if (allowedRoles.length > 0 && !allowedRoles.includes(profile?.role)) {
     return <Navigate to="/dashboard" replace />;
   }
-
+  
   return children;
 };
 
 const AuthGuard = ({ children }) => {
   const { loading, isAuthenticated } = useAuth();
-
+  
   if (loading) return <LoadingSpinner />;
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
-
+  
   return children;
 };
 
 const DashboardRouter = () => {
   const { profile } = useAuth();
-
+  
   switch (profile?.role) {
     case 'admin':
       return <SuperAdminDashboard />;
@@ -70,8 +70,8 @@ function App() {
                 } 
               />
               
-              <Route
-                path="/*"
+              <Route 
+                path="/*" 
                 element={
                   <ProtectedRoute>
                     <Layout>
@@ -79,79 +79,27 @@ function App() {
                         <Route path="/" element={<Navigate to="/dashboard" replace />} />
                         <Route path="/dashboard" element={<DashboardRouter />} />
                         
-                        {/* Admin Routes */}
-                        <Route
-                          path="/players"
-                          element={
-                            <ProtectedRoute allowedRoles={['admin']}>
-                              <div>Players Management - Coming Soon</div>
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/invoices"
-                          element={
-                            <ProtectedRoute allowedRoles={['admin']}>
-                              <div>Invoice Management - Coming Soon</div>
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/reports"
-                          element={
-                            <ProtectedRoute allowedRoles={['admin']}>
-                              <div>Financial Reports - Coming Soon</div>
-                            </ProtectedRoute>
-                          }
-                        />
-
-                        {/* Trainer Routes */}
-                        <Route
-                          path="/my-teams"
-                          element={
-                            <ProtectedRoute allowedRoles={['trainer']}>
-                              <div>My Teams - Coming Soon</div>
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/attendance"
-                          element={
-                            <ProtectedRoute allowedRoles={['trainer']}>
-                              <div>Attendance Management - Coming Soon</div>
-                            </ProtectedRoute>
-                          }
-                        />
-
-                        {/* Parent Routes */}
-                        <Route
-                          path="/my-children"
-                          element={
-                            <ProtectedRoute allowedRoles={['parent']}>
-                              <div>My Children - Coming Soon</div>
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/payments"
-                          element={
-                            <ProtectedRoute allowedRoles={['parent', 'admin']}>
-                              <div>Payment History - Coming Soon</div>
-                            </ProtectedRoute>
-                          }
-                        />
-
-                        {/* Common Routes */}
-                        <Route path="/calendar" element={<div>Calendar - Coming Soon</div>} />
-                        <Route path="/messages" element={<div>Messages - Coming Soon</div>} />
-                        <Route path="/profile" element={<div>Profile - Coming Soon</div>} />
+                        {/* Placeholder routes */}
+                        <Route path="/calendar" element={<div className="p-6"><h1 className="text-2xl font-bold">Calendar - Coming Soon</h1></div>} />
+                        <Route path="/messages" element={<div className="p-6"><h1 className="text-2xl font-bold">Messages - Coming Soon</h1></div>} />
+                        <Route path="/profile" element={<div className="p-6"><h1 className="text-2xl font-bold">Profile - Coming Soon</h1></div>} />
+                        <Route path="/players" element={<div className="p-6"><h1 className="text-2xl font-bold">Players Management - Coming Soon</h1></div>} />
+                        <Route path="/teams" element={<div className="p-6"><h1 className="text-2xl font-bold">Teams Management - Coming Soon</h1></div>} />
+                        <Route path="/invoices" element={<div className="p-6"><h1 className="text-2xl font-bold">Invoice Management - Coming Soon</h1></div>} />
+                        <Route path="/payments" element={<div className="p-6"><h1 className="text-2xl font-bold">Payment Management - Coming Soon</h1></div>} />
+                        <Route path="/reports" element={<div className="p-6"><h1 className="text-2xl font-bold">Reports - Coming Soon</h1></div>} />
+                        <Route path="/settings" element={<div className="p-6"><h1 className="text-2xl font-bold">Settings - Coming Soon</h1></div>} />
+                        <Route path="/my-teams" element={<div className="p-6"><h1 className="text-2xl font-bold">My Teams - Coming Soon</h1></div>} />
+                        <Route path="/attendance" element={<div className="p-6"><h1 className="text-2xl font-bold">Attendance - Coming Soon</h1></div>} />
+                        <Route path="/training-sessions" element={<div className="p-6"><h1 className="text-2xl font-bold">Training Sessions - Coming Soon</h1></div>} />
+                        <Route path="/my-children" element={<div className="p-6"><h1 className="text-2xl font-bold">My Children - Coming Soon</h1></div>} />
                       </Routes>
                     </Layout>
                   </ProtectedRoute>
-                }
+                } 
               />
             </Routes>
-
+            
             <ToastContainer
               position="top-right"
               autoClose={3000}

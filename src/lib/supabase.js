@@ -1,18 +1,37 @@
-import { createClient } from '@supabase/supabase-js'
-
-const SUPABASE_URL = 'https://bjelydvroavsqczejpgd.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqZWx5ZHZyb2F2c3FjemVqcGdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMjE2MDcsImV4cCI6MjA2NjU5NzYwN30.f-693IO1d0TCBQRiWcSTvjCT8I7bb0t9Op_gvD5LeIE'
-
-if (SUPABASE_URL === 'https://<PROJECT-ID>.supabase.co' || SUPABASE_ANON_KEY === '<ANON_KEY>') {
-  throw new Error('Missing Supabase variables');
-}
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+// Mock supabase client for development
+const mockSupabase = {
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
-  }
-})
+    signUp: async () => ({ data: null, error: null }),
+    signInWithPassword: async () => ({ data: null, error: null }),
+    signOut: async () => ({ error: null }),
+    getSession: async () => ({ data: { session: null }, error: null }),
+    onAuthStateChange: () => ({
+      data: { subscription: { unsubscribe: () => {} } }
+    })
+  },
+  from: () => ({
+    select: () => ({
+      eq: () => ({
+        single: async () => ({ data: null, error: null })
+      })
+    }),
+    insert: () => ({
+      select: () => ({
+        single: async () => ({ data: null, error: null })
+      })
+    }),
+    update: () => ({
+      eq: () => ({
+        select: () => ({
+          single: async () => ({ data: null, error: null })
+        })
+      })
+    }),
+    delete: () => ({
+      eq: async () => ({ error: null })
+    })
+  })
+};
 
-export default supabase
+export const supabase = mockSupabase;
+export default mockSupabase;

@@ -3,8 +3,13 @@ import { FiMenu, FiBell, FiUser, FiLogOut } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Header = ({ onMenuClick }) => {
-  const { user, logout } = useAuth();
+  const { profile, signOut } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
+
+  const handleSignOut = async () => {
+    setShowProfile(false);
+    await signOut();
+  };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -31,20 +36,20 @@ const Header = ({ onMenuClick }) => {
               onClick={() => setShowProfile(!showProfile)}
               className="flex items-center space-x-3 text-sm rounded-lg p-2 hover:bg-gray-50"
             >
-              <img
-                className="h-8 w-8 rounded-full"
-                src={user?.avatar}
-                alt={user?.name}
-              />
-              <span className="hidden md:block font-medium">{user?.name}</span>
+              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                <span className="text-gray-600 font-medium text-xs">
+                  {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                </span>
+              </div>
+              <span className="hidden md:block font-medium">{profile?.first_name} {profile?.last_name}</span>
             </button>
 
             {showProfile && (
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border py-2 z-50">
                 <div className="px-4 py-3 border-b">
-                  <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-xs text-gray-600">{user?.email}</p>
-                  <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                  <p className="text-sm font-medium">{profile?.first_name} {profile?.last_name}</p>
+                  <p className="text-xs text-gray-600">{profile?.email}</p>
+                  <p className="text-xs text-gray-500 capitalize">{profile?.role}</p>
                 </div>
                 <div className="py-1">
                   <a
@@ -58,10 +63,7 @@ const Header = ({ onMenuClick }) => {
                 </div>
                 <div className="border-t py-1">
                   <button
-                    onClick={() => {
-                      setShowProfile(false);
-                      logout();
-                    }}
+                    onClick={handleSignOut}
                     className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
                   >
                     <FiLogOut className="h-4 w-4 mr-3" />
