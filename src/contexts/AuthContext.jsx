@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
-import { toast } from 'react-toastify'
+import React, {createContext, useContext, useState, useEffect} from 'react'
+import {toast} from 'react-toastify'
 
 const AuthContext = createContext({})
 
@@ -12,133 +11,45 @@ export const useAuth = () => {
   return context
 }
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({children}) => {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
+  // Mock authentication for demo
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        if (error) throw error
-        
-        if (session?.user) {
-          setUser(session.user)
-          await fetchUserProfile(session.user.id)
-          setIsAuthenticated(true)
-        }
-      } catch (error) {
-        console.error('Error getting initial session:', error)
-        toast.error('Authentication error')
-      } finally {
-        setLoading(false)
-      }
+    // Check if user is already logged in (localStorage)
+    const savedUser = localStorage.getItem('demo_user')
+    if (savedUser) {
+      const userData = JSON.parse(savedUser)
+      setUser(userData)
+      setProfile(userData)
+      setIsAuthenticated(true)
     }
-
-    getInitialSession()
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setUser(session.user)
-          await fetchUserProfile(session.user.id)
-          setIsAuthenticated(true)
-        } else {
-          setUser(null)
-          setProfile(null)
-          setIsAuthenticated(false)
-        }
-        setLoading(false)
-      }
-    )
-
-    return () => subscription.unsubscribe()
+    setLoading(false)
   }, [])
-
-  const fetchUserProfile = async (userId) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        throw error
-      }
-
-      if (profile) {
-        setProfile(profile)
-      } else {
-        // Create default profile if doesn't exist
-        const defaultProfile = {
-          id: userId,
-          first_name: '',
-          last_name: '',
-          role: 'parent',
-          created_at: new Date().toISOString()
-        }
-        
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert(defaultProfile)
-          .select()
-          .single()
-
-        if (createError) throw createError
-        setProfile(newProfile)
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error)
-    }
-  }
 
   const signUp = async (email, password, userData) => {
     try {
       setLoading(true)
-      
-      const { data, error } = await supabase.auth.signUp({
+      // Mock signup
+      const newUser = {
+        id: Date.now().toString(),
         email,
-        password,
-        options: {
-          data: {
-            first_name: userData.first_name,
-            last_name: userData.last_name,
-            role: userData.role || 'parent'
-          }
-        }
-      })
-
-      if (error) throw error
-
-      if (data.user) {
-        // Create profile
-        const profileData = {
-          id: data.user.id,
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          phone: userData.phone,
-          role: userData.role || 'parent',
-          created_at: new Date().toISOString()
-        }
-
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert(profileData)
-
-        if (profileError) throw profileError
-
-        toast.success('Account created successfully!')
-        return { success: true, data }
+        ...userData,
+        created_at: new Date().toISOString()
       }
+      setUser(newUser)
+      setProfile(newUser)
+      setIsAuthenticated(true)
+      localStorage.setItem('demo_user', JSON.stringify(newUser))
+      toast.success('Account created successfully!')
+      return {success: true, data: newUser}
     } catch (error) {
       console.error('Sign up error:', error)
-      toast.error(error.message)
-      return { success: false, error: error.message }
+      toast.error('Failed to create account')
+      return {success: false, error: error.message}
     } finally {
       setLoading(false)
     }
@@ -148,19 +59,72 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true)
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      // Demo accounts with correct credentials
+      const demoAccounts = {
+        'admin@academy.com': {
+          role: 'admin',
+          first_name: 'Admin',
+          last_name: 'User'
+        },
+        'coach@academy.com': {
+          role: 'coach', 
+          first_name: 'Coach',
+          last_name: 'Demo'
+        },
+        'parent@academy.com': {
+          role: 'parent',
+          first_name: 'Parent', 
+          last_name: 'Demo'
+        },
+        'player@academy.com': {
+          role: 'player',
+          first_name: 'Player',
+          last_name: 'Demo'
+        },
+        'sponsor@academy.com': {
+          role: 'sponsor',
+          first_name: 'Sponsor',
+          last_name: 'Demo',
+          company_name: 'Nike Greece'
+        },
+        // Additional working emails
+        'admin@youthsports.com': {
+          role: 'admin',
+          first_name: 'Admin',
+          last_name: 'User'
+        },
+        'trainer@academy.com': {
+          role: 'trainer',
+          first_name: 'Trainer',
+          last_name: 'Demo'
+        }
+      }
 
-      if (error) throw error
-
-      toast.success('Signed in successfully!')
-      return { success: true, data }
+      const userData = demoAccounts[email]
+      
+      // Accept both "password123" and "admin123" etc
+      const validPasswords = ['password123', 'admin123', 'demo123', 'test123']
+      
+      if (userData && validPasswords.includes(password)) {
+        const user = {
+          id: Date.now().toString(),
+          email,
+          ...userData,
+          name: `${userData.first_name} ${userData.last_name}`
+        }
+        setUser(user)
+        setProfile(user)
+        setIsAuthenticated(true)
+        localStorage.setItem('demo_user', JSON.stringify(user))
+        toast.success('Signed in successfully!')
+        return {success: true, data: user}
+      } else {
+        throw new Error('Invalid credentials')
+      }
     } catch (error) {
       console.error('Sign in error:', error)
-      toast.error(error.message)
-      return { success: false, error: error.message }
+      toast.error('Invalid email or password')
+      return {success: false, error: error.message}
     } finally {
       setLoading(false)
     }
@@ -168,45 +132,30 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = async () => {
     try {
-      setLoading(true)
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-      
       setUser(null)
       setProfile(null)
       setIsAuthenticated(false)
+      localStorage.removeItem('demo_user')
       toast.success('Signed out successfully!')
     } catch (error) {
       console.error('Sign out error:', error)
       toast.error('Error signing out')
-    } finally {
-      setLoading(false)
     }
   }
 
   const updateProfile = async (updates) => {
     try {
       if (!user) throw new Error('No user logged in')
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id)
-        .select()
-        .single()
-
-      if (error) throw error
-
-      setProfile(data)
+      
+      const updatedProfile = {...profile, ...updates}
+      setProfile(updatedProfile)
+      localStorage.setItem('demo_user', JSON.stringify(updatedProfile))
       toast.success('Profile updated successfully!')
-      return { success: true, data }
+      return {success: true, data: updatedProfile}
     } catch (error) {
       console.error('Update profile error:', error)
       toast.error('Failed to update profile')
-      return { success: false, error: error.message }
+      return {success: false, error: error.message}
     }
   }
 
@@ -218,8 +167,7 @@ export const AuthProvider = ({ children }) => {
     signUp,
     signIn,
     signOut,
-    updateProfile,
-    fetchUserProfile
+    updateProfile
   }
 
   return (

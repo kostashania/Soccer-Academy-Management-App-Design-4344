@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
-import { Navigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { FiMail, FiLock, FiUser, FiPhone } from 'react-icons/fi'
-import { useAuth } from '../../contexts/AuthContext'
+import React, {useState} from 'react'
+import {Navigate} from 'react-router-dom'
+import {motion} from 'framer-motion'
+import {FiMail, FiLock, FiUser, FiPhone} from 'react-icons/fi'
+import {useAuth} from '../../contexts/AuthContext'
 
 const AuthPage = () => {
-  const { signIn, signUp, isAuthenticated, loading } = useAuth()
+  const {signIn, signUp, isAuthenticated, loading} = useAuth()
   const [isSignUp, setIsSignUp] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -24,7 +24,7 @@ const AuthPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
-
+    
     try {
       if (isSignUp) {
         const result = await signUp(formData.email, formData.password, {
@@ -33,7 +33,6 @@ const AuthPage = () => {
           phone: formData.phone,
           role: formData.role
         })
-
         if (result.success) {
           setIsSignUp(false)
           setFormData({
@@ -63,16 +62,18 @@ const AuthPage = () => {
   }
 
   const demoAccounts = [
-    { role: 'Super Admin', email: 'admin@academy.com', password: 'admin123' },
-    { role: 'Trainer', email: 'trainer@academy.com', password: 'trainer123' },
-    { role: 'Parent', email: 'parent@academy.com', password: 'parent123' },
-    { role: 'Player', email: 'player@academy.com', password: 'player123' },
-    { role: 'Sponsor', email: 'sponsor@academy.com', password: 'sponsor123' }
+    {role: 'Admin', email: 'admin@academy.com', password: 'password123'},
+    {role: 'Admin Alt', email: 'admin@youthsports.com', password: 'password123'},
+    {role: 'Coach', email: 'coach@academy.com', password: 'password123'},
+    {role: 'Trainer', email: 'trainer@academy.com', password: 'password123'},
+    {role: 'Parent', email: 'parent@academy.com', password: 'password123'},
+    {role: 'Player', email: 'player@academy.com', password: 'password123'},
+    {role: 'Sponsor', email: 'sponsor@academy.com', password: 'password123'}
   ]
 
   const quickLogin = async (email, password) => {
     setIsLoading(true)
-    setFormData({ ...formData, email, password })
+    setFormData({...formData, email, password})
     await signIn(email, password)
     setIsLoading(false)
   }
@@ -89,21 +90,21 @@ const AuthPage = () => {
     <div className="min-h-screen flex">
       {/* Left side - Image */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-purple-700 relative">
-        <img
-          src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop"
-          alt="Youth Sports"
-          className="absolute inset-0 w-full h-full object-cover opacity-20"
+        <img 
+          src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop" 
+          alt="Youth Sports" 
+          className="absolute inset-0 w-full h-full object-cover opacity-20" 
         />
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{opacity: 0, y: 20}}
+            animate={{opacity: 1, y: 0}}
+            transition={{duration: 0.8}}
           >
             <h1 className="text-5xl font-bold mb-6">Youth Sports Academy</h1>
             <p className="text-xl leading-relaxed">
-              Complete platform for managing youth sports organizations with 
-              financial control, team management, and sponsor integration.
+              Complete platform for managing youth sports organizations with financial control, 
+              team management, and sponsor integration.
             </p>
           </motion.div>
         </div>
@@ -112,9 +113,9 @@ const AuthPage = () => {
       {/* Right side - Auth Form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-12 lg:px-16">
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
+          initial={{opacity: 0, x: 20}}
+          animate={{opacity: 1, x: 0}}
+          transition={{duration: 0.6}}
           className="max-w-md mx-auto w-full"
         >
           <div className="mb-8">
@@ -122,8 +123,8 @@ const AuthPage = () => {
               {isSignUp ? 'Create Account' : 'Welcome Back'}
             </h2>
             <p className="text-gray-600">
-              {isSignUp
-                ? 'Sign up for your Sports Academy account'
+              {isSignUp 
+                ? 'Sign up for your Sports Academy account' 
                 : 'Sign in to your Sports Academy account'
               }
             </p>
@@ -168,7 +169,7 @@ const AuthPage = () => {
                     </div>
                   </div>
                 </div>
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone
@@ -185,7 +186,7 @@ const AuthPage = () => {
                     />
                   </div>
                 </div>
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Role
@@ -255,16 +256,13 @@ const AuthPage = () => {
               onClick={() => setIsSignUp(!isSignUp)}
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              {isSignUp
-                ? 'Already have an account? Sign in'
-                : "Don't have an account? Sign up"
-              }
+              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
             </button>
           </div>
 
           {/* Demo Accounts */}
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-600 mb-4 text-center">Quick demo login:</p>
+            <p className="text-sm text-gray-600 mb-4 text-center font-semibold">🎯 Quick Demo Login (Click Any):</p>
             <div className="grid grid-cols-1 gap-2">
               {demoAccounts.map((account) => (
                 <button
@@ -278,9 +276,14 @@ const AuthPage = () => {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-4 text-center">
-              All demo accounts use simple passwords for testing
-            </p>
+            <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+              <p className="text-xs text-green-700 text-center font-medium">
+                ✅ All accounts use password: <code className="bg-green-100 px-1 rounded font-mono">password123</code>
+              </p>
+              <p className="text-xs text-green-600 text-center mt-1">
+                You can also use: admin123, demo123, or test123
+              </p>
+            </div>
           </div>
         </motion.div>
       </div>

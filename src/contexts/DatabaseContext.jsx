@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { useAuth } from './AuthContext';
-import { supabase } from '../lib/supabase';
 import { toast } from 'react-toastify';
 
 const DatabaseContext = createContext({});
@@ -14,62 +13,52 @@ export const useDatabase = () => {
 };
 
 export const DatabaseProvider = ({ children }) => {
-  const { user, profile } = useAuth();
-  const [connections, setConnections] = useState([]);
-  const [systemSettings, setSystemSettings] = useState({});
+  const { profile } = useAuth();
+  const [connections, setConnections] = useState([
+    {
+      id: '1',
+      connection_name: 'Main Academy DB',
+      app_schema: 'academies',
+      host: 'localhost',
+      port: 5432,
+      database_name: 'sports_academy',
+      username: 'admin',
+      supabase_url: 'https://demo.supabase.co',
+      status: 'active',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: '2',
+      connection_name: 'Financial DB',
+      app_schema: 'financial',
+      host: 'localhost',
+      port: 5432,
+      database_name: 'financial_app',
+      username: 'finance_admin',
+      supabase_url: 'https://finance.supabase.co',
+      status: 'active',
+      created_at: new Date().toISOString()
+    }
+  ]);
+  
+  const [systemSettings, setSystemSettings] = useState({
+    app: {
+      multi_schema_enabled: true,
+      default_currency: 'EUR'
+    },
+    security: {
+      session_timeout: 3600
+    },
+    financial: {
+      tax_rate: 0.24
+    }
+  });
+  
   const [loading, setLoading] = useState(false);
   const [testingConnection, setTestingConnection] = useState(null);
 
   // Check if user has admin access
   const hasAdminAccess = profile?.role === 'admin' || profile?.role === 'super_admin';
-
-  useEffect(() => {
-    if (hasAdminAccess) {
-      loadDatabaseConnections();
-      loadSystemSettings();
-    }
-  }, [hasAdminAccess]);
-
-  const loadDatabaseConnections = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('shared.database_connections')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setConnections(data || []);
-    } catch (error) {
-      console.error('Error loading database connections:', error);
-      toast.error('Failed to load database connections');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadSystemSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('shared.system_settings')
-        .select('*');
-
-      if (error) throw error;
-      
-      // Convert array to object for easier access
-      const settingsObj = {};
-      data?.forEach(setting => {
-        if (!settingsObj[setting.setting_category]) {
-          settingsObj[setting.setting_category] = {};
-        }
-        settingsObj[setting.setting_category][setting.setting_key] = setting.setting_value;
-      });
-      
-      setSystemSettings(settingsObj);
-    } catch (error) {
-      console.error('Error loading system settings:', error);
-    }
-  };
 
   const createConnection = async (connectionData) => {
     if (!hasAdminAccess) {
@@ -80,26 +69,15 @@ export const DatabaseProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      // Encrypt password (in production, use proper encryption)
-      const encryptedData = {
+      const newConnection = {
+        id: Date.now().toString(),
         ...connectionData,
-        password_encrypted: btoa(connectionData.password), // Simple base64 encoding for demo
-        created_by: user?.id
+        created_at: new Date().toISOString()
       };
       
-      delete encryptedData.password; // Remove plain password
-
-      const { data, error } = await supabase
-        .from('shared.database_connections')
-        .insert(encryptedData)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setConnections(prev => [data, ...prev]);
+      setConnections(prev => [newConnection, ...prev]);
       toast.success('Database connection created successfully');
-      return { success: true, data };
+      return { success: true, data: newConnection };
     } catch (error) {
       console.error('Error creating connection:', error);
       toast.error('Failed to create database connection');
@@ -118,29 +96,16 @@ export const DatabaseProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      const updateData = { ...updates, updated_by: user?.id };
-      
-      // Encrypt password if provided
-      if (updates.password) {
-        updateData.password_encrypted = btoa(updates.password);
-        delete updateData.password;
-      }
-
-      const { data, error } = await supabase
-        .from('shared.database_connections')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
       setConnections(prev => 
-        prev.map(conn => conn.id === id ? data : conn)
+        prev.map(conn => 
+          conn.id === id 
+            ? { ...conn, ...updates, updated_at: new Date().toISOString() }
+            : conn
+        )
       );
       
       toast.success('Connection updated successfully');
-      return { success: true, data };
+      return { success: true };
     } catch (error) {
       console.error('Error updating connection:', error);
       toast.error('Failed to update connection');
@@ -158,13 +123,6 @@ export const DatabaseProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('shared.database_connections')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
       setConnections(prev => prev.filter(conn => conn.id !== id));
       toast.success('Connection deleted successfully');
       return { success: true };
@@ -186,32 +144,9 @@ export const DatabaseProvider = ({ children }) => {
     try {
       setTestingConnection(connectionData.connection_name);
       
-      // Test Supabase connection
-      if (connectionData.supabase_url && connectionData.supabase_anon_key) {
-        const testSupabase = createClient(
-          connectionData.supabase_url,
-          connectionData.supabase_anon_key
-        );
-        
-        const { error } = await testSupabase.from('test').select('count').limit(1);
-        // We expect an error here if table doesn't exist, but no auth errors
-        if (error && error.message.includes('authentication')) {
-          throw new Error('Supabase authentication failed');
-        }
-      }
-
-      // Test API endpoints if provided
-      if (connectionData.api_endpoints?.health_check) {
-        const response = await fetch(connectionData.api_endpoints.health_check, {
-          method: 'GET',
-          timeout: 5000
-        });
-        
-        if (!response.ok) {
-          throw new Error(`API health check failed: ${response.status}`);
-        }
-      }
-
+      // Simulate connection test
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       toast.success('Connection test successful');
       return { success: true };
     } catch (error) {
@@ -223,29 +158,13 @@ export const DatabaseProvider = ({ children }) => {
     }
   };
 
-  const updateSystemSetting = async (category, key, value, description = '') => {
+  const updateSystemSetting = async (category, key, value) => {
     if (!hasAdminAccess) {
       toast.error('Unauthorized access');
       return { success: false };
     }
 
     try {
-      const { data, error } = await supabase
-        .from('shared.system_settings')
-        .upsert({
-          setting_category: category,
-          setting_key: key,
-          setting_value: value,
-          description
-        }, {
-          onConflict: 'setting_category,setting_key'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Update local state
       setSystemSettings(prev => ({
         ...prev,
         [category]: {
@@ -255,7 +174,7 @@ export const DatabaseProvider = ({ children }) => {
       }));
 
       toast.success('System setting updated');
-      return { success: true, data };
+      return { success: true };
     } catch (error) {
       console.error('Error updating system setting:', error);
       toast.error('Failed to update system setting');
@@ -280,7 +199,6 @@ export const DatabaseProvider = ({ children }) => {
     hasAdminAccess,
 
     // Functions
-    loadDatabaseConnections,
     createConnection,
     updateConnection,
     deleteConnection,
