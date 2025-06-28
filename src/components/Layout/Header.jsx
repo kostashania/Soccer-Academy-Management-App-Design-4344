@@ -11,6 +11,10 @@ const Header = ({ onMenuClick }) => {
     await signOut();
   };
 
+  const handleBackToDashboard = () => {
+    window.location.hash = '/dashboard';
+  };
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -22,6 +26,14 @@ const Header = ({ onMenuClick }) => {
             onClick={onMenuClick}
           >
             <FiMenu className="h-6 w-6" />
+          </button>
+          
+          {/* Back to Dashboard button for mobile */}
+          <button
+            onClick={handleBackToDashboard}
+            className="ml-4 lg:hidden px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+          >
+            Dashboard
           </button>
         </div>
 
@@ -77,9 +89,9 @@ const Header = ({ onMenuClick }) => {
       </div>
 
       {showProfile && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setShowProfile(false)}
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowProfile(false)} 
         />
       )}
     </header>

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import { useAuth } from '../../contexts/AuthContext';
@@ -27,16 +26,14 @@ const CoachDashboard = () => {
   const TeamManagement = () => (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold text-gray-900">Team Management</h3>
-      
       {myTeams.map((team, index) => (
-        <div key={index} className="bg-white rounded-xl shadow-soft p-6 border border-gray-100">
+        <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex justify-between items-center mb-4">
             <h4 className="text-xl font-bold text-gray-900">{team.name}</h4>
             <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
               {team.players} players
             </span>
           </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-50 p-4 rounded-lg">
               <h5 className="font-medium text-gray-900">Next Training</h5>
@@ -51,7 +48,6 @@ const CoachDashboard = () => {
               <p className="text-sm text-gray-600">Excellent</p>
             </div>
           </div>
-
           <div className="mt-4">
             <h5 className="font-medium text-gray-900 mb-2">Recent Players</h5>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -71,8 +67,7 @@ const CoachDashboard = () => {
   const TrainingManagement = () => (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold text-gray-900">Training Sessions</h3>
-      
-      <div className="bg-white rounded-xl shadow-soft p-6 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <h4 className="text-lg font-bold text-gray-900 mb-4">Upcoming Sessions</h4>
         <div className="space-y-3">
           {upcomingSessions.map((session) => (
@@ -93,8 +88,7 @@ const CoachDashboard = () => {
           ))}
         </div>
       </div>
-
-      <div className="bg-white rounded-xl shadow-soft p-6 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <h4 className="text-lg font-bold text-gray-900 mb-4">Training Statistics</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-blue-50 rounded-lg">
@@ -117,14 +111,10 @@ const CoachDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Coach Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-6 text-white"
-      >
+      <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-6 text-white animate-fadeIn">
         <h1 className="text-2xl font-bold mb-2">Coach Dashboard</h1>
         <p className="text-green-100">Welcome back, {user?.name}! Ready to train your teams?</p>
-      </motion.div>
+      </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -134,12 +124,10 @@ const CoachDashboard = () => {
           { name: 'This Week Sessions', value: upcomingSessions.length.toString(), icon: FiCalendar, color: 'purple' },
           { name: 'Avg Attendance', value: '92%', icon: FiTrendingUp, color: 'orange' },
         ].map((stat, index) => (
-          <motion.div
+          <div
             key={stat.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-xl shadow-soft p-6 border border-gray-100"
+            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-slideUp"
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -150,12 +138,12 @@ const CoachDashboard = () => {
                 <SafeIcon icon={stat.icon} className={`h-6 w-6 text-${stat.color}-600`} />
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white rounded-xl shadow-soft border border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <nav className="flex space-x-1 p-2">
           {[
             { id: 'overview', name: 'Overview' },
@@ -166,7 +154,9 @@ const CoachDashboard = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === tab.id ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                activeTab === tab.id
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               {tab.name}
@@ -176,16 +166,11 @@ const CoachDashboard = () => {
       </div>
 
       {/* Tab Content */}
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+      <div className="animate-fadeIn">
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* My Teams Overview */}
-            <div className="bg-white rounded-xl shadow-soft p-6 border border-gray-100">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">My Teams</h3>
               <div className="space-y-4">
                 {myTeams.map((team, index) => (
@@ -204,7 +189,7 @@ const CoachDashboard = () => {
             </div>
 
             {/* Upcoming Sessions */}
-            <div className="bg-white rounded-xl shadow-soft p-6 border border-gray-100">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Sessions</h3>
               <div className="space-y-4">
                 {upcomingSessions.slice(0, 3).map((session) => (
@@ -235,7 +220,7 @@ const CoachDashboard = () => {
         )}
         {activeTab === 'teams' && <TeamManagement />}
         {activeTab === 'training' && <TrainingManagement />}
-      </motion.div>
+      </div>
     </div>
   );
 };

@@ -1,13 +1,9 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import { useAuth } from '../../contexts/AuthContext';
 
-const { 
-  FiCalendar, FiTrendingUp, FiTarget, FiAward, 
-  FiClock, FiMapPin, FiUsers, FiActivity 
-} = FiIcons;
+const { FiCalendar, FiTrendingUp, FiTarget, FiAward, FiClock, FiMapPin, FiUsers, FiActivity } = FiIcons;
 
 const PlayerDashboard = () => {
   const { user } = useAuth();
@@ -41,37 +37,60 @@ const PlayerDashboard = () => {
   ];
 
   const recentPerformance = [
-    { date: 'Last Match', performance: 'Excellent', rating: 4.8, notes: 'Great teamwork and passing' },
-    { date: 'Training', performance: 'Good', rating: 4.2, notes: 'Improved ball control' },
-    { date: 'Match', performance: 'Very Good', rating: 4.5, notes: 'Scored 2 goals' },
+    {
+      date: 'Last Match',
+      performance: 'Excellent',
+      rating: 4.8,
+      notes: 'Great teamwork and passing'
+    },
+    {
+      date: 'Training',
+      performance: 'Good',
+      rating: 4.2,
+      notes: 'Improved ball control'
+    },
+    {
+      date: 'Match',
+      performance: 'Very Good',
+      rating: 4.5,
+      notes: 'Scored 2 goals'
+    },
   ];
 
   const achievements = [
-    { title: 'Player of the Month', date: 'February 2024', icon: FiAward },
-    { title: 'Top Scorer', date: 'January 2024', icon: FiTarget },
-    { title: 'Perfect Attendance', date: 'December 2023', icon: FiTrendingUp },
+    {
+      title: 'Player of the Month',
+      date: 'February 2024',
+      icon: FiAward
+    },
+    {
+      title: 'Top Scorer',
+      date: 'January 2024',
+      icon: FiTarget
+    },
+    {
+      title: 'Perfect Attendance',
+      date: 'December 2023',
+      icon: FiTrendingUp
+    },
   ];
 
   return (
     <div className="space-y-6">
       {/* Player Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-6 text-white"
-      >
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-6 text-white animate-fadeIn">
         <div className="flex items-center space-x-4">
-          <img
-            src={user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'}
-            alt={user?.name}
-            className="w-16 h-16 rounded-full object-cover border-4 border-white/20"
+          <img 
+            src={user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'} 
+            alt={user?.name} 
+            className="w-16 h-16 rounded-full object-cover border-4 border-white/20" 
           />
           <div>
             <h1 className="text-2xl font-bold mb-1">{user?.name}</h1>
             <p className="text-blue-100">{playerStats.team} • {playerStats.position}</p>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Player Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -81,12 +100,10 @@ const PlayerDashboard = () => {
           { name: 'Goals Scored', value: playerStats.goalsScored, icon: FiTarget, color: 'red' },
           { name: 'Matches Played', value: playerStats.matchesPlayed, icon: FiActivity, color: 'blue' },
         ].map((stat, index) => (
-          <motion.div
+          <div
             key={stat.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-xl shadow-soft p-4 border border-gray-100"
+            className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 animate-slideUp"
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -97,18 +114,13 @@ const PlayerDashboard = () => {
                 <SafeIcon icon={stat.icon} className={`h-5 w-5 text-${stat.color}-600`} />
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upcoming Events */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white rounded-xl shadow-soft p-6 border border-gray-100"
-        >
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-slideLeft">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">My Schedule</h3>
           <div className="space-y-4">
             {upcomingEvents.map((event, index) => (
@@ -117,12 +129,9 @@ const PlayerDashboard = () => {
                   <div className={`p-2 rounded-lg ${
                     event.type === 'training' ? 'bg-blue-50' : 'bg-green-50'
                   }`}>
-                    <SafeIcon 
-                      icon={FiCalendar} 
-                      className={`h-4 w-4 ${
-                        event.type === 'training' ? 'text-blue-600' : 'text-green-600'
-                      }`} 
-                    />
+                    <SafeIcon icon={FiCalendar} className={`h-4 w-4 ${
+                      event.type === 'training' ? 'text-blue-600' : 'text-green-600'
+                    }`} />
                   </div>
                 </div>
                 <div className="flex-1">
@@ -139,9 +148,7 @@ const PlayerDashboard = () => {
                     </span>
                   </div>
                   <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${
-                    event.type === 'training' 
-                      ? 'bg-blue-100 text-blue-800' 
-                      : 'bg-green-100 text-green-800'
+                    event.type === 'training' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
                   }`}>
                     {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
                   </span>
@@ -149,15 +156,10 @@ const PlayerDashboard = () => {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Achievements */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white rounded-xl shadow-soft p-6 border border-gray-100"
-        >
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-slideRight">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">My Achievements</h3>
           <div className="space-y-4">
             {achievements.map((achievement, index) => (
@@ -174,16 +176,11 @@ const PlayerDashboard = () => {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Recent Performance */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="bg-white rounded-xl shadow-soft p-6 border border-gray-100"
-      >
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-fadeIn">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Performance</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full">
@@ -220,7 +217,7 @@ const PlayerDashboard = () => {
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

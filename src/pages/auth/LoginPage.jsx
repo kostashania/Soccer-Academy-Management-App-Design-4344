@@ -35,14 +35,13 @@ const LoginPage = () => {
         });
 
         if (result.success) {
-          toast.success('Account created successfully! Please check your email to verify your account.');
+          toast.success('Account created successfully!');
           setIsSignUp(false);
         } else {
           toast.error(result.error || 'Failed to create account');
         }
       } else {
         const result = await signIn(formData.email, formData.password);
-        
         if (result.success) {
           toast.success('Login successful!');
         } else {
@@ -59,30 +58,30 @@ const LoginPage = () => {
   const quickLogin = async (email, role) => {
     setLoading(true);
     const result = await signIn(email, 'password123');
-    
     if (result.success) {
-      toast.success('Demo login successful!');
+      toast.success(`${role} demo login successful!`);
     } else {
       toast.error('Demo login failed');
     }
-    
     setLoading(false);
   };
 
   const demoAccounts = [
-    { role: 'admin', email: 'admin@youthsports.com', name: 'Super Admin' },
-    { role: 'trainer', email: 'trainer@youthsports.com', name: 'Trainer Demo' },
-    { role: 'parent', email: 'parent@youthsports.com', name: 'Parent Demo' }
+    { role: 'Admin', email: 'admin@youthsports.com', name: 'Super Admin' },
+    { role: 'Coach', email: 'trainer@youthsports.com', name: 'Trainer Demo' },
+    { role: 'Parent', email: 'parent@youthsports.com', name: 'Parent Demo' },
+    { role: 'Player', email: 'player@youthsports.com', name: 'Player Demo' },
+    { role: 'Sponsor', email: 'sponsor@nike.com', name: 'Nike Sponsor' }
   ];
 
   return (
     <div className="min-h-screen flex">
       {/* Left side - Image */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-purple-700 relative">
-        <img
-          src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop"
-          alt="Youth Sports"
-          className="absolute inset-0 w-full h-full object-cover opacity-20"
+        <img 
+          src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop" 
+          alt="Youth Sports" 
+          className="absolute inset-0 w-full h-full object-cover opacity-20" 
         />
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
           <h1 className="text-5xl font-bold mb-6">Youth Sports Management</h1>
@@ -99,7 +98,7 @@ const LoginPage = () => {
             </h2>
             <p className="text-gray-600">
               {isSignUp 
-                ? 'Sign up for your Youth Sports Management account'
+                ? 'Sign up for your Youth Sports Management account' 
                 : 'Sign in to your Youth Sports Management account'
               }
             </p>
@@ -117,7 +116,7 @@ const LoginPage = () => {
                         type="text"
                         required
                         value={formData.first_name}
-                        onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                         className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="First name"
                       />
@@ -131,7 +130,7 @@ const LoginPage = () => {
                         type="text"
                         required
                         value={formData.last_name}
-                        onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                         className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Last name"
                       />
@@ -146,7 +145,7 @@ const LoginPage = () => {
                     <input
                       type="tel"
                       value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Phone number"
                     />
@@ -157,12 +156,14 @@ const LoginPage = () => {
                   <label className="block text-sm font-medium mb-2">Role</label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({...formData, role: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     className="block w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="parent">Parent</option>
                     <option value="trainer">Trainer</option>
+                    <option value="player">Player</option>
                     <option value="admin">Administrator</option>
+                    <option value="sponsor">Sponsor</option>
                   </select>
                 </div>
               </>
@@ -176,7 +177,7 @@ const LoginPage = () => {
                   type="email"
                   required
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter your email"
                 />
@@ -191,7 +192,7 @@ const LoginPage = () => {
                   type="password"
                   required
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter your password"
                 />
@@ -230,7 +231,7 @@ const LoginPage = () => {
                   disabled={loading}
                   className="flex items-center justify-between px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
                 >
-                  <span className="font-medium text-blue-700 capitalize">{account.name}</span>
+                  <span className="font-medium text-blue-700">{account.name}</span>
                   <span className="text-sm text-blue-600">{account.email}</span>
                 </button>
               ))}
