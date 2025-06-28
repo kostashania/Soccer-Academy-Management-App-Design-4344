@@ -76,7 +76,46 @@ export default {
         'medium': '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
         'hard': '0 10px 40px -10px rgba(0, 0, 0, 0.15)',
       },
+      animation: {
+        'fadeIn': 'fadeIn 0.3s ease-out',
+        'slideUp': 'slideUp 0.3s ease-out',
+        'slideLeft': 'slideLeft 0.4s ease-out',
+        'slideRight': 'slideRight 0.4s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideLeft: {
+          '0%': { opacity: '0', transform: 'translateX(-20px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        slideRight: {
+          '0%': { opacity: '0', transform: 'translateX(20px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+      },
     },
   },
   plugins: [],
+  safelist: [
+    // Dynamic color classes for stats and badges
+    'bg-blue-50', 'bg-blue-100', 'bg-blue-500', 'bg-blue-600',
+    'bg-green-50', 'bg-green-100', 'bg-green-500', 'bg-green-600',
+    'bg-yellow-50', 'bg-yellow-100', 'bg-yellow-500', 'bg-yellow-600',
+    'bg-red-50', 'bg-red-100', 'bg-red-500', 'bg-red-600',
+    'bg-purple-50', 'bg-purple-100', 'bg-purple-500', 'bg-purple-600',
+    'bg-orange-50', 'bg-orange-100', 'bg-orange-500', 'bg-orange-600',
+    'text-blue-600', 'text-blue-700', 'text-blue-800',
+    'text-green-600', 'text-green-700', 'text-green-800',
+    'text-yellow-600', 'text-yellow-700', 'text-yellow-800',
+    'text-red-600', 'text-red-700', 'text-red-800',
+    'text-purple-600', 'text-purple-700', 'text-purple-800',
+    'text-orange-600', 'text-orange-700', 'text-orange-800',
+  ]
 }

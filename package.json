@@ -1,5 +1,5 @@
 {
-  "name": "soccer-academy-app",
+  "name": "youth-sports-academy",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -15,7 +15,8 @@
     "react-icons": "^5.4.0",
     "react-toastify": "^9.1.3",
     "@supabase/supabase-js": "^2.39.0",
-    "framer-motion": "^10.16.16"
+    "framer-motion": "^10.16.16",
+    "stripe": "^14.25.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",

@@ -1,19 +1,15 @@
-import React, { useState } from 'react';
-import { FiMenu, FiBell, FiUser, FiLogOut } from 'react-icons/fi';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState } from 'react'
+import { FiMenu, FiBell, FiUser, FiLogOut } from 'react-icons/fi'
+import { useAuth } from '../../contexts/AuthContext'
 
 const Header = ({ onMenuClick }) => {
-  const { profile, signOut } = useAuth();
-  const [showProfile, setShowProfile] = useState(false);
+  const { profile, signOut } = useAuth()
+  const [showProfile, setShowProfile] = useState(false)
 
   const handleSignOut = async () => {
-    setShowProfile(false);
-    await signOut();
-  };
-
-  const handleBackToDashboard = () => {
-    window.location.hash = '/dashboard';
-  };
+    setShowProfile(false)
+    await signOut()
+  }
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -26,14 +22,6 @@ const Header = ({ onMenuClick }) => {
             onClick={onMenuClick}
           >
             <FiMenu className="h-6 w-6" />
-          </button>
-          
-          {/* Back to Dashboard button for mobile */}
-          <button
-            onClick={handleBackToDashboard}
-            className="ml-4 lg:hidden px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
-          >
-            Dashboard
           </button>
         </div>
 
@@ -53,20 +41,24 @@ const Header = ({ onMenuClick }) => {
                   {profile?.first_name?.[0]}{profile?.last_name?.[0]}
                 </span>
               </div>
-              <span className="hidden md:block font-medium">{profile?.first_name} {profile?.last_name}</span>
+              <span className="hidden md:block font-medium text-gray-900">
+                {profile?.first_name} {profile?.last_name}
+              </span>
             </button>
 
             {showProfile && (
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border py-2 z-50">
                 <div className="px-4 py-3 border-b">
-                  <p className="text-sm font-medium">{profile?.first_name} {profile?.last_name}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {profile?.first_name} {profile?.last_name}
+                  </p>
                   <p className="text-xs text-gray-600">{profile?.email}</p>
                   <p className="text-xs text-gray-500 capitalize">{profile?.role}</p>
                 </div>
                 <div className="py-1">
                   <a
                     href="#/profile"
-                    className="flex items-center px-4 py-2 text-sm hover:bg-gray-50"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => setShowProfile(false)}
                   >
                     <FiUser className="h-4 w-4 mr-3" />
@@ -89,13 +81,13 @@ const Header = ({ onMenuClick }) => {
       </div>
 
       {showProfile && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setShowProfile(false)} 
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowProfile(false)}
         />
       )}
     </header>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header

@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import Sidebar from './Sidebar';
-import Header from './Header';
+import React, { useState } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
+import Sidebar from './Sidebar'
+import Header from './Header'
+import { useLocation } from 'react-router-dom'
 
 const Layout = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { user, profile } = useAuth()
+  const location = useLocation()
 
-  if (!user) return null;
+  if (!user) return null
+
+  // Don't show layout on auth pages
+  if (location.pathname.startsWith('/auth/')) {
+    return children
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -20,8 +27,8 @@ const Layout = ({ children }) => {
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div 
-            className="absolute inset-0 bg-gray-600 opacity-75"
-            onClick={() => setSidebarOpen(false)}
+            className="absolute inset-0 bg-gray-600 opacity-75" 
+            onClick={() => setSidebarOpen(false)} 
           />
           <div className="relative flex w-64 flex-col bg-white h-full">
             <Sidebar onClose={() => setSidebarOpen(false)} />
@@ -41,7 +48,7 @@ const Layout = ({ children }) => {
         </main>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Layout;
+export default Layout

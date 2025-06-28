@@ -1,11 +1,15 @@
-import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { FiHome, FiUsers, FiCalendar, FiDollarSign, FiBarChart2, FiSettings, FiMessageSquare, FiUser, FiClipboard } from 'react-icons/fi';
-import { useAuth } from '../../contexts/AuthContext';
+import React from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
+import { 
+  FiHome, FiUsers, FiCalendar, FiDollarSign, FiBarChart2, 
+  FiSettings, FiMessageSquare, FiUser, FiClipboard, FiPackage,
+  FiTarget, FiAward
+} from 'react-icons/fi'
+import { useAuth } from '../../contexts/AuthContext'
 
 const Sidebar = ({ onClose }) => {
-  const { profile } = useAuth();
-  const location = useLocation();
+  const { profile } = useAuth()
+  const location = useLocation()
 
   const getNavigationItems = () => {
     const baseItems = [
@@ -13,10 +17,11 @@ const Sidebar = ({ onClose }) => {
       { name: 'Calendar', href: '/calendar', icon: FiCalendar },
       { name: 'Messages', href: '/messages', icon: FiMessageSquare },
       { name: 'Profile', href: '/profile', icon: FiUser }
-    ];
+    ]
 
     // Role-specific navigation
     switch (profile?.role) {
+      case 'super_admin':
       case 'admin':
         return [
           ...baseItems,
@@ -25,27 +30,47 @@ const Sidebar = ({ onClose }) => {
           { name: 'Invoices', href: '/invoices', icon: FiDollarSign },
           { name: 'Payments', href: '/payments', icon: FiDollarSign },
           { name: 'Reports', href: '/reports', icon: FiBarChart2 },
+          { name: 'Sponsors', href: '/sponsors', icon: FiTarget },
+          { name: 'Store', href: '/store', icon: FiPackage },
           { name: 'Settings', href: '/settings', icon: FiSettings }
-        ];
+        ]
+
       case 'trainer':
         return [
           ...baseItems,
           { name: 'My Teams', href: '/my-teams', icon: FiUsers },
           { name: 'Attendance', href: '/attendance', icon: FiClipboard },
           { name: 'Training Sessions', href: '/training-sessions', icon: FiCalendar }
-        ];
+        ]
+
       case 'parent':
         return [
           ...baseItems,
           { name: 'My Children', href: '/my-children', icon: FiUsers },
-          { name: 'Payments', href: '/payments', icon: FiDollarSign }
-        ];
-      default:
-        return baseItems;
-    }
-  };
+          { name: 'Payments', href: '/payments', icon: FiDollarSign },
+          { name: 'Store', href: '/store', icon: FiPackage }
+        ]
 
-  const navigationItems = getNavigationItems();
+      case 'player':
+        return [
+          ...baseItems,
+          { name: 'My Team', href: '/my-team', icon: FiUsers },
+          { name: 'Performance', href: '/performance', icon: FiAward }
+        ]
+
+      case 'sponsor':
+        return [
+          ...baseItems,
+          { name: 'Sponsorship', href: '/sponsorship', icon: FiTarget },
+          { name: 'Analytics', href: '/analytics', icon: FiBarChart2 }
+        ]
+
+      default:
+        return baseItems
+    }
+  }
+
+  const navigationItems = getNavigationItems()
 
   return (
     <div className="flex h-full w-64 flex-col bg-white shadow-lg">
@@ -55,14 +80,14 @@ const Sidebar = ({ onClose }) => {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-lg">⚽</span>
           </div>
-          <span className="ml-3 text-xl font-bold">Youth Sports</span>
+          <span className="ml-3 text-xl font-bold text-gray-900">Sports Academy</span>
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-6">
         {navigationItems.map((item) => {
-          const isActive = location.pathname === item.href;
+          const isActive = location.pathname === item.href
           return (
             <NavLink
               key={item.name}
@@ -74,14 +99,14 @@ const Sidebar = ({ onClose }) => {
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
             >
-              <item.icon
+              <item.icon 
                 className={`mr-3 h-5 w-5 ${
                   isActive ? 'text-blue-600' : 'text-gray-400'
-                }`}
+                }`} 
               />
               {item.name}
             </NavLink>
-          );
+          )
         })}
       </nav>
 
@@ -94,13 +119,15 @@ const Sidebar = ({ onClose }) => {
             </span>
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium">{profile?.first_name} {profile?.last_name}</p>
+            <p className="text-sm font-medium text-gray-900">
+              {profile?.first_name} {profile?.last_name}
+            </p>
             <p className="text-xs text-gray-500 capitalize">{profile?.role}</p>
           </div>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Sidebar;
+export default Sidebar
