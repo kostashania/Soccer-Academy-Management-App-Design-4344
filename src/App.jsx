@@ -4,17 +4,13 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { DataProvider } from './contexts/DataContext';
+import { AppProvider } from './contexts/AppContext';
 
 import Layout from './components/Layout/Layout';
 import LoginPage from './pages/auth/LoginPage';
-import Dashboard from './pages/Dashboard/Dashboard';
-import Calendar from './pages/Calendar/Calendar';
-import Payments from './pages/Payments/Payments';
-import Store from './pages/Store/Store';
-import Cart from './pages/Cart/Cart';
-import Messages from './pages/Messages/Messages';
-import Profile from './pages/Profile/Profile';
+import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
+import ParentDashboard from './pages/parent/ParentDashboard';
+import TrainerDashboard from './pages/trainer/TrainerDashboard';
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -23,11 +19,11 @@ const LoadingSpinner = () => (
 );
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { profile, isAuthenticated, loading } = useAuth();
 
   if (loading) return <LoadingSpinner />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+  if (allowedRoles.length > 0 && !allowedRoles.includes(profile?.role)) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -43,10 +39,25 @@ const AuthGuard = ({ children }) => {
   return children;
 };
 
+const DashboardRouter = () => {
+  const { profile } = useAuth();
+
+  switch (profile?.role) {
+    case 'admin':
+      return <SuperAdminDashboard />;
+    case 'trainer':
+      return <TrainerDashboard />;
+    case 'parent':
+      return <ParentDashboard />;
+    default:
+      return <ParentDashboard />;
+  }
+};
+
 function App() {
   return (
     <AuthProvider>
-      <DataProvider>
+      <AppProvider>
         <Router>
           <div className="App min-h-screen bg-gray-50">
             <Routes>
@@ -66,20 +77,74 @@ function App() {
                     <Layout>
                       <Routes>
                         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/calendar" element={<Calendar />} />
+                        <Route path="/dashboard" element={<DashboardRouter />} />
+                        
+                        {/* Admin Routes */}
                         <Route
-                          path="/payments"
+                          path="/players"
                           element={
-                            <ProtectedRoute allowedRoles={['admin', 'parent']}>
-                              <Payments />
+                            <ProtectedRoute allowedRoles={['admin']}>
+                              <div>Players Management - Coming Soon</div>
                             </ProtectedRoute>
                           }
                         />
-                        <Route path="/store" element={<Store />} />
-                        <Route path="/cart" element={<Cart />} />
-                        <Route path="/messages" element={<Messages />} />
-                        <Route path="/profile" element={<Profile />} />
+                        <Route
+                          path="/invoices"
+                          element={
+                            <ProtectedRoute allowedRoles={['admin']}>
+                              <div>Invoice Management - Coming Soon</div>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/reports"
+                          element={
+                            <ProtectedRoute allowedRoles={['admin']}>
+                              <div>Financial Reports - Coming Soon</div>
+                            </ProtectedRoute>
+                          }
+                        />
+
+                        {/* Trainer Routes */}
+                        <Route
+                          path="/my-teams"
+                          element={
+                            <ProtectedRoute allowedRoles={['trainer']}>
+                              <div>My Teams - Coming Soon</div>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/attendance"
+                          element={
+                            <ProtectedRoute allowedRoles={['trainer']}>
+                              <div>Attendance Management - Coming Soon</div>
+                            </ProtectedRoute>
+                          }
+                        />
+
+                        {/* Parent Routes */}
+                        <Route
+                          path="/my-children"
+                          element={
+                            <ProtectedRoute allowedRoles={['parent']}>
+                              <div>My Children - Coming Soon</div>
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/payments"
+                          element={
+                            <ProtectedRoute allowedRoles={['parent', 'admin']}>
+                              <div>Payment History - Coming Soon</div>
+                            </ProtectedRoute>
+                          }
+                        />
+
+                        {/* Common Routes */}
+                        <Route path="/calendar" element={<div>Calendar - Coming Soon</div>} />
+                        <Route path="/messages" element={<div>Messages - Coming Soon</div>} />
+                        <Route path="/profile" element={<div>Profile - Coming Soon</div>} />
                       </Routes>
                     </Layout>
                   </ProtectedRoute>
@@ -100,7 +165,7 @@ function App() {
             />
           </div>
         </Router>
-      </DataProvider>
+      </AppProvider>
     </AuthProvider>
   );
 }

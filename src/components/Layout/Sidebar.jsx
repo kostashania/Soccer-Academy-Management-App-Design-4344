@@ -1,24 +1,54 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FiHome, FiCalendar, FiCreditCard, FiShoppingBag, FiMessageSquare, FiUser } from 'react-icons/fi';
+import { FiHome, FiUsers, FiCalendar, FiDollarSign, FiBarChart3, FiSettings, FiMessageSquare, FiUser, FiClipboard } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Sidebar = ({ onClose }) => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const location = useLocation();
 
-  const navigationItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: FiHome },
-    { name: 'Calendar', href: '/calendar', icon: FiCalendar },
-    { name: 'Store', href: '/store', icon: FiShoppingBag },
-    { name: 'Messages', href: '/messages', icon: FiMessageSquare },
-    { name: 'Profile', href: '/profile', icon: FiUser }
-  ];
+  const getNavigationItems = () => {
+    const baseItems = [
+      { name: 'Dashboard', href: '/dashboard', icon: FiHome },
+      { name: 'Calendar', href: '/calendar', icon: FiCalendar },
+      { name: 'Messages', href: '/messages', icon: FiMessageSquare },
+      { name: 'Profile', href: '/profile', icon: FiUser }
+    ];
 
-  // Add payments for admin and parent
-  if (['admin', 'parent'].includes(user?.role)) {
-    navigationItems.splice(2, 0, { name: 'Payments', href: '/payments', icon: FiCreditCard });
-  }
+    // Role-specific navigation
+    switch (profile?.role) {
+      case 'admin':
+        return [
+          ...baseItems,
+          { name: 'Players', href: '/players', icon: FiUsers },
+          { name: 'Teams', href: '/teams', icon: FiUsers },
+          { name: 'Invoices', href: '/invoices', icon: FiDollarSign },
+          { name: 'Payments', href: '/payments', icon: FiDollarSign },
+          { name: 'Reports', href: '/reports', icon: FiBarChart3 },
+          { name: 'Settings', href: '/settings', icon: FiSettings }
+        ];
+      
+      case 'trainer':
+        return [
+          ...baseItems,
+          { name: 'My Teams', href: '/my-teams', icon: FiUsers },
+          { name: 'Attendance', href: '/attendance', icon: FiClipboard },
+          { name: 'Training Sessions', href: '/training-sessions', icon: FiCalendar }
+        ];
+      
+      case 'parent':
+        return [
+          ...baseItems,
+          { name: 'My Children', href: '/my-children', icon: FiUsers },
+          { name: 'Payments', href: '/payments', icon: FiDollarSign }
+        ];
+      
+      default:
+        return baseItems;
+    }
+  };
+
+  const navigationItems = getNavigationItems();
 
   return (
     <div className="flex h-full w-64 flex-col bg-white shadow-lg">
@@ -28,7 +58,7 @@ const Sidebar = ({ onClose }) => {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-lg">⚽</span>
           </div>
-          <span className="ml-3 text-xl font-bold">Soccer Academy</span>
+          <span className="ml-3 text-xl font-bold">Youth Sports</span>
         </div>
       </div>
 
@@ -61,14 +91,14 @@ const Sidebar = ({ onClose }) => {
       {/* User Profile */}
       <div className="border-t p-4">
         <div className="flex items-center">
-          <img
-            className="h-10 w-10 rounded-full"
-            src={user?.avatar}
-            alt={user?.name}
-          />
+          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+            <span className="text-gray-600 font-medium text-sm">
+              {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+            </span>
+          </div>
           <div className="ml-3">
-            <p className="text-sm font-medium">{user?.name}</p>
-            <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+            <p className="text-sm font-medium">{profile?.first_name} {profile?.last_name}</p>
+            <p className="text-xs text-gray-500 capitalize">{profile?.role}</p>
           </div>
         </div>
       </div>

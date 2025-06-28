@@ -1,262 +1,206 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import * as FiIcons from 'react-icons/fi';
-import SafeIcon from '../../common/SafeIcon';
+import React from 'react';
+import { FiUser, FiDollarSign, FiCalendar, FiTrendingUp } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import { useApp } from '../../contexts/AppContext';
 
-const { FiUser, FiCalendar, FiCreditCard, FiTrendingUp, FiClock, FiMapPin, FiCheck, FiAlertCircle } = FiIcons;
-
 const ParentDashboard = () => {
-  const { user } = useAuth();
-  const { students, users, events, payments } = useApp();
-  const [activeTab, setActiveTab] = useState('overview');
+  const { profile } = useAuth();
+  const { players, invoices, payments, attendance } = useApp();
 
-  // Get children for this parent
-  const myChildren = students.filter(student => student.parentId === user?.id) || [
-    { id: '1', name: 'Emma Johnson', age: 8, team: 'K6 Lions', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face' },
-    { id: '2', name: 'Jake Johnson', age: 12, team: 'K10 Eagles', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face' }
-  ];
+  // Filter data for current parent
+  const myChildren = players.filter(player => player.parent_id === profile?.user_id);
+  const myInvoices = invoices.filter(invoice => 
+    myChildren.some(child => child.id === invoice.player_id)
+  );
 
-  // Get upcoming events for children
-  const upcomingEvents = events.filter(event => 
-    myChildren.some(child => event.participants?.includes(child.name))
-  ).slice(0, 5);
-
-  // Get payment information
-  const myPayments = payments.filter(payment => payment.parentName === user?.name);
-  const totalDue = myPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
-  const paidThisMonth = myPayments.filter(p => p.status === 'paid' && new Date(p.date).getMonth() === new Date().getMonth()).reduce((sum, p) => sum + p.amount, 0);
-
-  const paymentStatus = {
-    totalDue: `€${totalDue}`,
-    paidThisMonth: `€${paidThisMonth}`,
-    nextDue: 'March 15, 2024',
-    status: totalDue === 0 ? 'current' : 'pending'
+  const getPaymentStatus = (playerId) => {
+    const playerInvoices = myInvoices.filter(inv => inv.player_id === playerId);
+    const pendingInvoices = playerInvoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue');
+    const totalDue = pendingInvoices.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+    
+    if (totalDue === 0) return { status: 'current', amount: 0, color: 'green' };
+    if (pendingInvoices.some(inv => inv.status === 'overdue')) return { status: 'overdue', amount: totalDue, color: 'red' };
+    return { status: 'pending', amount: totalDue, color: 'yellow' };
   };
 
-  const MyChildrenTab = () => (
+  const getAttendanceRate = (playerId) => {
+    const playerAttendance = attendance.filter(att => att.player_id === playerId);
+    if (playerAttendance.length === 0) return 0;
+    
+    const presentCount = playerAttendance.filter(att => att.status === 'present').length;
+    return Math.round((presentCount / playerAttendance.length) * 100);
+  };
+
+  const totalDue = myInvoices
+    .filter(inv => inv.status === 'pending' || inv.status === 'overdue')
+    .reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+
+  const stats = [
+    {
+      name: 'My Children',
+      value: myChildren.length,
+      icon: FiUser,
+      color: 'blue'
+    },
+    {
+      name: 'Total Due',
+      value: `$${totalDue.toFixed(2)}`,
+      icon: FiDollarSign,
+      color: totalDue > 0 ? 'red' : 'green'
+    },
+    {
+      name: 'This Month',
+      value: myInvoices.filter(inv => 
+        new Date(inv.created_at).getMonth() === new Date().getMonth()
+      ).length,
+      icon: FiCalendar,
+      color: 'purple'
+    },
+    {
+      name: 'Avg Attendance',
+      value: `${Math.round(myChildren.reduce((sum, child) => sum + getAttendanceRate(child.id), 0) / (myChildren.length || 1))}%`,
+      icon: FiTrendingUp,
+      color: 'orange'
+    }
+  ];
+
+  return (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900">My Children</h3>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {myChildren.map((child) => (
-          <div key={child.id} className="bg-white rounded-xl shadow-soft p-6 border border-gray-100">
-            <div className="flex items-center space-x-4 mb-4">
-              <img src={child.avatar} alt={child.name} className="w-16 h-16 rounded-full object-cover" />
+      {/* Header */}
+      <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-2xl p-6 text-white">
+        <h1 className="text-2xl font-bold mb-2">Parent Dashboard</h1>
+        <p className="text-green-100">Welcome back, {profile?.first_name}! Here's your family's status.</p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, index) => (
+          <div
+            key={stat.name}
+            className="bg-white rounded-xl shadow-sm p-6 border"
+          >
+            <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-xl font-bold text-gray-900">{child.name}</h4>
-                <p className="text-gray-600">Age {child.age} • {child.team}</p>
+                <p className="text-sm font-medium text-gray-600">{stat.name}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
               </div>
-            </div>
-
-            {/* Child's upcoming events */}
-            <div className="mb-4">
-              <h5 className="font-medium text-gray-900 mb-2">Upcoming Events</h5>
-              <div className="space-y-2">
-                {events.filter(event => event.participants?.includes(child.name)).slice(0, 3).map((event) => (
-                  <div key={event.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{event.title}</p>
-                      <p className="text-xs text-gray-600">{new Date(event.date).toLocaleDateString()} at {event.time}</p>
-                    </div>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      event.type === 'training' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                    }`}>
-                      {event.type}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Performance stats */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-green-50 rounded-lg">
-                <div className="text-lg font-bold text-green-600">95%</div>
-                <div className="text-xs text-green-600">Attendance</div>
-              </div>
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <div className="text-lg font-bold text-blue-600">4.8</div>
-                <div className="text-xs text-blue-600">Performance</div>
+              <div className={`p-3 bg-${stat.color}-50 rounded-lg`}>
+                <stat.icon className={`h-6 w-6 text-${stat.color}-600`} />
               </div>
             </div>
           </div>
         ))}
       </div>
-    </div>
-  );
 
-  return (
-    <div className="space-y-6">
-      {/* Parent Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 text-white"
-      >
-        <h1 className="text-2xl font-bold mb-2">Parent Dashboard</h1>
-        <p className="text-purple-100">Welcome back, {user?.name}! Here's what's happening with your children.</p>
-      </motion.div>
-
-      {/* Payment Status */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white rounded-xl shadow-soft p-6 border border-gray-100"
-      >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Status</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <SafeIcon icon={FiCheck} className="h-8 w-8 text-green-600 mx-auto mb-2" />
-            <p className="text-sm text-green-600 font-medium">Account Status</p>
-            <p className="text-lg font-bold text-green-700 capitalize">{paymentStatus.status}</p>
-          </div>
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <SafeIcon icon={FiCreditCard} className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-            <p className="text-sm text-blue-600 font-medium">Paid This Month</p>
-            <p className="text-lg font-bold text-blue-700">{paymentStatus.paidThisMonth}</p>
-          </div>
-          <div className="text-center p-4 bg-orange-50 rounded-lg">
-            <SafeIcon icon={FiAlertCircle} className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-            <p className="text-sm text-orange-600 font-medium">Amount Due</p>
-            <p className="text-lg font-bold text-orange-700">{paymentStatus.totalDue}</p>
-          </div>
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <SafeIcon icon={FiClock} className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-            <p className="text-sm text-purple-600 font-medium">Next Due Date</p>
-            <p className="text-sm font-bold text-purple-700">{paymentStatus.nextDue}</p>
-          </div>
+      {/* Children Status */}
+      <div className="bg-white rounded-xl shadow-sm border">
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-semibold text-gray-900">My Children</h3>
         </div>
-      </motion.div>
-
-      {/* Navigation Tabs */}
-      <div className="bg-white rounded-xl shadow-soft border border-gray-100">
-        <nav className="flex space-x-1 p-2">
-          {[
-            { id: 'overview', name: 'Overview' },
-            { id: 'children', name: 'My Children' },
-            { id: 'payments', name: 'Payments' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === tab.id ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              {tab.name}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Tab Content */}
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Children Overview */}
-            <div className="bg-white rounded-xl shadow-soft p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">My Children</h3>
-              <div className="space-y-4">
-                {myChildren.map((child) => (
+        <div className="p-6">
+          {myChildren.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No children registered yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {myChildren.map((child) => {
+                const paymentStatus = getPaymentStatus(child.id);
+                const attendanceRate = getAttendanceRate(child.id);
+                
+                return (
                   <div key={child.id} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center space-x-4 mb-4">
-                      <img src={child.avatar} alt={child.name} className="w-12 h-12 rounded-full object-cover" />
+                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-gray-600 font-medium">
+                          {child.profile?.first_name?.[0]}{child.profile?.last_name?.[0]}
+                        </span>
+                      </div>
                       <div>
-                        <h4 className="font-semibold text-gray-900">{child.name}</h4>
-                        <p className="text-sm text-gray-600">Age {child.age} • {child.team}</p>
+                        <h4 className="font-semibold text-gray-900">
+                          {child.profile?.first_name} {child.profile?.last_name}
+                        </h4>
+                        <p className="text-sm text-gray-600">{child.team?.name || 'No team assigned'}</p>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Next Training:</span>
-                        <span className="font-medium">Today 4:00 PM</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Attendance:</span>
-                        <span className="font-medium text-green-600">95%</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Upcoming Events */}
-            <div className="bg-white rounded-xl shadow-soft p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Events</h3>
-              <div className="space-y-4">
-                {upcomingEvents.map((event) => (
-                  <div key={event.id} className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg">
-                    <div className="flex-shrink-0">
-                      <div className={`p-2 rounded-lg ${event.type === 'training' ? 'bg-blue-50' : 'bg-green-50'}`}>
-                        <SafeIcon icon={FiCalendar} className={`h-4 w-4 ${event.type === 'training' ? 'text-blue-600' : 'text-green-600'}`} />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{event.title}</h4>
-                      <p className="text-sm text-gray-600 mb-2">For: {event.participants?.join(', ')}</p>
-                      <div className="flex items-center space-x-4 text-xs text-gray-500">
-                        <span className="flex items-center">
-                          <SafeIcon icon={FiClock} className="h-3 w-3 mr-1" />
-                          {new Date(event.date).toLocaleDateString()} {event.time}
-                        </span>
-                        <span className="flex items-center">
-                          <SafeIcon icon={FiMapPin} className="h-3 w-3 mr-1" />
-                          Location
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Payment Status:</span>
+                        <span className={`px-2 py-1 text-xs rounded-full bg-${paymentStatus.color}-100 text-${paymentStatus.color}-800`}>
+                          {paymentStatus.status === 'current' ? 'Current' : 
+                           paymentStatus.status === 'overdue' ? 'Overdue' : 'Pending'}
+                          {paymentStatus.amount > 0 && ` ($${paymentStatus.amount.toFixed(2)})`}
                         </span>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-        {activeTab === 'children' && <MyChildrenTab />}
-        {activeTab === 'payments' && (
-          <div className="bg-white rounded-xl shadow-soft p-6 border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment History</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Student</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Amount</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Date</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {myPayments.map((payment) => (
-                    <tr key={payment.id} className="border-b border-gray-100">
-                      <td className="py-4 px-4 font-medium text-gray-900">{payment.studentName}</td>
-                      <td className="py-4 px-4 font-semibold text-gray-900">€{payment.amount.toFixed(2)}</td>
-                      <td className="py-4 px-4 text-gray-600">{payment.date}</td>
-                      <td className="py-4 px-4">
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          payment.status === 'paid' ? 'bg-green-100 text-green-800' :
-                          payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Attendance Rate:</span>
+                        <span className={`font-medium ${
+                          attendanceRate >= 90 ? 'text-green-600' : 
+                          attendanceRate >= 75 ? 'text-yellow-600' : 'text-red-600'
                         }`}>
-                          {payment.status}
+                          {attendanceRate}%
                         </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Status:</span>
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          child.is_active 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {child.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </div>
-        )}
-      </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Recent Invoices */}
+      <div className="bg-white rounded-xl shadow-sm border">
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-semibold text-gray-900">Recent Invoices</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left py-3 px-6 font-medium text-gray-600">Child</th>
+                <th className="text-left py-3 px-6 font-medium text-gray-600">Amount</th>
+                <th className="text-left py-3 px-6 font-medium text-gray-600">Due Date</th>
+                <th className="text-left py-3 px-6 font-medium text-gray-600">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {myInvoices.slice(0, 5).map((invoice) => (
+                <tr key={invoice.id} className="border-b hover:bg-gray-50">
+                  <td className="py-4 px-6 font-medium text-gray-900">
+                    {invoice.player?.profile?.first_name} {invoice.player?.profile?.last_name}
+                  </td>
+                  <td className="py-4 px-6 font-semibold">${invoice.amount}</td>
+                  <td className="py-4 px-6">{new Date(invoice.due_date).toLocaleDateString()}</td>
+                  <td className="py-4 px-6">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      invoice.status === 'paid' 
+                        ? 'bg-green-100 text-green-800'
+                        : invoice.status === 'overdue'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext({});
 
@@ -12,81 +13,124 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      const userData = JSON.parse(savedUser);
-      setUser(userData);
+    // Get initial session
+    getInitialSession();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          setUser(session.user);
+          await fetchUserProfile(session.user.id);
+          setIsAuthenticated(true);
+        } else {
+          setUser(null);
+          setProfile(null);
+          setIsAuthenticated(false);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const getInitialSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      setUser(session.user);
+      await fetchUserProfile(session.user.id);
       setIsAuthenticated(true);
     }
     setLoading(false);
-  }, []);
+  };
 
-  const login = async (email, password) => {
+  const fetchUserProfile = async (userId) => {
     try {
-      // Simple demo login
-      const demoUsers = {
-        'admin@academy.com': {
-          id: '1',
-          email: 'admin@academy.com',
-          name: 'Admin Demo',
-          role: 'admin',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
-        },
-        'coach@academy.com': {
-          id: '2',
-          email: 'coach@academy.com',
-          name: 'Coach Demo',
-          role: 'coach',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
-        },
-        'parent@academy.com': {
-          id: '3',
-          email: 'parent@academy.com',
-          name: 'Parent Demo',
-          role: 'parent',
-          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
-        },
-        'player@academy.com': {
-          id: '4',
-          email: 'player@academy.com',
-          name: 'Player Demo',
-          role: 'player',
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'
-        }
-      };
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
 
-      if (demoUsers[email] && password === 'password123') {
-        const userData = demoUsers[email];
-        setUser(userData);
-        setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(userData));
-        return { success: true, user: userData };
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return;
       }
 
-      return { success: false, error: 'Invalid credentials' };
+      setProfile(data);
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+    }
+  };
+
+  const signUp = async (email, password, profileData) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            role: profileData.role || 'parent'
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Create profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: data.user.id,
+            first_name: profileData.first_name,
+            last_name: profileData.last_name,
+            phone: profileData.phone,
+            role: profileData.role || 'parent'
+          });
+
+        if (profileError) throw profileError;
+      }
+
+      return { success: true, data };
     } catch (error) {
       return { success: false, error: error.message };
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('user');
-    window.location.hash = '/login';
+  const signIn = async (email, password) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
   };
 
   const value = {
     user,
+    profile,
     isAuthenticated,
     loading,
-    login,
-    logout
+    signUp,
+    signIn,
+    signOut,
+    fetchUserProfile
   };
 
   return (
