@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
-import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, {useState} from 'react';
+import {Routes, Route, NavLink, useLocation} from 'react-router-dom';
+import {motion} from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import Dashboard from '../Dashboard/Dashboard';
-import { useApp } from '../../contexts/AppContext';
-import { toast } from 'react-toastify';
+import UserManagement from './UserManagement';
+import {useApp} from '../../contexts/AppContext';
+import {toast} from 'react-toastify';
 
-const { FiUsers, FiBarChart2, FiPackage, FiDollarSign, FiMegaphone, FiSettings, FiHome, FiPlus, FiEdit2, FiTrash2, FiMapPin, FiTag, FiX } = FiIcons;
+const {
+  FiUsers, FiBarChart2, FiPackage, FiDollarSign, FiMegaphone, 
+  FiSettings, FiHome, FiPlus, FiEdit2, FiTrash2, FiMapPin, FiTag, FiX
+} = FiIcons;
 
 // Simple placeholder components for admin sections
-const UsersManagement = () => (
+const UsersManagementPlaceholder = () => (
   <div className="bg-white rounded-xl shadow-sm p-6">
     <h2 className="text-2xl font-bold mb-4">Users Management</h2>
     <p className="text-gray-600">Manage all users in the system</p>
@@ -56,17 +60,17 @@ const SponsorsManagement = () => (
 
 const AdminDashboard = () => {
   const location = useLocation();
-
+  
   const adminTabs = [
-    { name: 'Overview', href: '/admin', icon: FiHome, exact: true },
-    { name: 'Users', href: '/admin/users', icon: FiUsers },
-    { name: 'Analytics', href: '/admin/analytics', icon: FiBarChart2 },
-    { name: 'Inventory', href: '/admin/inventory', icon: FiPackage },
-    { name: 'Locations', href: '/admin/locations', icon: FiMapPin },
-    { name: 'Categories', href: '/admin/categories', icon: FiTag },
-    { name: 'Finance', href: '/admin/finance', icon: FiDollarSign },
-    { name: 'Sponsors', href: '/admin/sponsors', icon: FiMegaphone },
-    { name: 'Settings', href: '/admin/settings', icon: FiSettings },
+    {name: 'Overview', href: '/admin', icon: FiHome, exact: true},
+    {name: 'Users', href: '/admin/users', icon: FiUsers},
+    {name: 'Analytics', href: '/admin/analytics', icon: FiBarChart2},
+    {name: 'Inventory', href: '/admin/inventory', icon: FiPackage},
+    {name: 'Locations', href: '/admin/locations', icon: FiMapPin},
+    {name: 'Categories', href: '/admin/categories', icon: FiTag},
+    {name: 'Finance', href: '/admin/finance', icon: FiDollarSign},
+    {name: 'Sponsors', href: '/admin/sponsors', icon: FiMegaphone},
+    {name: 'Settings', href: '/admin/settings', icon: FiSettings},
   ];
 
   return (
@@ -102,20 +106,36 @@ const AdminDashboard = () => {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        initial={{opacity: 0, y: 20}}
+        animate={{opacity: 1, y: 0}}
+        transition={{duration: 0.3}}
       >
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/users" element={<UsersManagement />} />
-          <Route path="/analytics" element={<div className="bg-white rounded-xl shadow-sm p-6"><h2 className="text-2xl font-bold">Analytics Coming Soon</h2></div>} />
-          <Route path="/inventory" element={<div className="bg-white rounded-xl shadow-sm p-6"><h2 className="text-2xl font-bold">Inventory Management - Use Store page</h2></div>} />
+          <Route path="/users" element={<UserManagement />} />
+          <Route path="/analytics" element={
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-2xl font-bold">Analytics Coming Soon</h2>
+            </div>
+          } />
+          <Route path="/inventory" element={
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-2xl font-bold">Inventory Management - Use Store page</h2>
+            </div>
+          } />
           <Route path="/locations" element={<LocationsManagement />} />
           <Route path="/categories" element={<CategoriesManagement />} />
-          <Route path="/finance" element={<div className="bg-white rounded-xl shadow-sm p-6"><h2 className="text-2xl font-bold">Finance Coming Soon</h2></div>} />
+          <Route path="/finance" element={
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-2xl font-bold">Finance Coming Soon</h2>
+            </div>
+          } />
           <Route path="/sponsors" element={<SponsorsManagement />} />
-          <Route path="/settings" element={<div className="bg-white rounded-xl shadow-sm p-6"><h2 className="text-2xl font-bold">Settings Coming Soon</h2></div>} />
+          <Route path="/settings" element={
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-2xl font-bold">Settings Coming Soon</h2>
+            </div>
+          } />
         </Routes>
       </motion.div>
     </div>
