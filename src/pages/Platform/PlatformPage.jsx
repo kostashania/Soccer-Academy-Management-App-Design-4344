@@ -1,12 +1,12 @@
 import React from 'react';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
-import { useApp } from '../../contexts/AppContext';
+import {useApp} from '../../contexts/AppContext';
 
-const { FiGlobe, FiExternalLink } = FiIcons;
+const {FiGlobe, FiExternalLink} = FiIcons;
 
 const PlatformPage = () => {
-  const { platformButtons = [] } = useApp();
+  const {platformButtons = []} = useApp();
 
   const handleButtonClick = (url) => {
     window.open(url, '_blank', 'noopener,noreferrer');

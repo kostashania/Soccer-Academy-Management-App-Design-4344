@@ -1,26 +1,20 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, {useState} from 'react';
+import {motion} from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
-import { useApp } from '../../contexts/AppContext';
-import { toast } from 'react-toastify';
+import {useApp} from '../../contexts/AppContext';
+import {toast} from 'react-toastify';
 
-const {
-  FiPlus,
-  FiEdit,
-  FiTrash2,
-  FiExternalLink,
-  FiSave,
-  FiX,
-  FiGlobe,
-  FiSettings
-} = FiIcons;
+const {FiPlus, FiEdit, FiTrash2, FiExternalLink, FiSave, FiX, FiGlobe, FiSettings} = FiIcons;
 
 const PlatformManagement = () => {
-  const { platformButtons = [], addPlatformButton, updatePlatformButton, deletePlatformButton } = useApp();
+  const {platformButtons = [], addPlatformButton, updatePlatformButton, deletePlatformButton} = useApp();
   const [isAddingButton, setIsAddingButton] = useState(false);
   const [editingButton, setEditingButton] = useState(null);
-  const [formData, setFormData] = useState({ text: '', url: '' });
+  const [formData, setFormData] = useState({
+    text: '',
+    url: ''
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -47,20 +41,20 @@ const PlatformManagement = () => {
       setIsAddingButton(false);
       toast.success('Platform button added successfully!');
     }
-    
-    setFormData({ text: '', url: '' });
+
+    setFormData({text: '', url: ''});
   };
 
   const startEdit = (button) => {
     setEditingButton(button);
-    setFormData({ text: button.text, url: button.url });
+    setFormData({text: button.text, url: button.url});
     setIsAddingButton(false);
   };
 
   const cancelEdit = () => {
     setEditingButton(null);
     setIsAddingButton(false);
-    setFormData({ text: '', url: '' });
+    setFormData({text: '', url: ''});
   };
 
   const handleDelete = (id) => {
@@ -94,13 +88,14 @@ const PlatformManagement = () => {
       {/* Add/Edit Form */}
       {(isAddingButton || editingButton) && (
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{opacity: 0, y: -20}}
+          animate={{opacity: 1, y: 0}}
           className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
         >
           <h3 className="text-lg font-semibold mb-4">
             {editingButton ? 'Edit Platform Button' : 'Add New Platform Button'}
           </h3>
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -110,7 +105,7 @@ const PlatformManagement = () => {
                 <input
                   type="text"
                   value={formData.text}
-                  onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+                  onChange={(e) => setFormData({...formData, text: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="e.g., Google Drive"
                   required
@@ -123,13 +118,14 @@ const PlatformManagement = () => {
                 <input
                   type="url"
                   value={formData.url}
-                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  onChange={(e) => setFormData({...formData, url: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="https://drive.google.com"
                   required
                 />
               </div>
             </div>
+            
             <div className="flex space-x-3">
               <button
                 type="submit"
@@ -157,6 +153,7 @@ const PlatformManagement = () => {
             Current Platform Buttons ({platformButtons.length})
           </h3>
         </div>
+        
         <div className="p-6">
           {platformButtons.length === 0 ? (
             <div className="text-center py-8">
@@ -170,9 +167,9 @@ const PlatformManagement = () => {
                 <motion.div
                   key={button.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  initial={{opacity: 0, scale: 0.95}}
+                  animate={{opacity: 1, scale: 1}}
+                  exit={{opacity: 0, scale: 0.95}}
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
@@ -184,6 +181,7 @@ const PlatformManagement = () => {
                       <p className="text-sm text-gray-500 break-all">{button.url}</p>
                     </div>
                   </div>
+                  
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => testLink(button.url)}
